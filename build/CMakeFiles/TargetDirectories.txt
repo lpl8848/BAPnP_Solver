@@ -1,0 +1,5 @@
+/home/luo/projects/MyBAPnP/build/CMakeFiles/run_benchmark.dir
+/home/luo/projects/MyBAPnP/build/CMakeFiles/run_tum.dir
+/home/luo/projects/MyBAPnP/build/CMakeFiles/run_colmap_bench.dir
+/home/luo/projects/MyBAPnP/build/CMakeFiles/edit_cache.dir
+/home/luo/projects/MyBAPnP/build/CMakeFiles/rebuild_cache.dir

@@ -1,0 +1,27 @@
+--- Starting Time Benchmark ---10^5
+N=6 | BAPnP: 0.00850197 | EPnP: 0.0994941 | CPnP: 0.0873169 | SQPnP: 0.0838587
+N=10 | BAPnP: 0.0083768 | EPnP: 0.0522549 | CPnP: 0.0791051 | SQPnP: 0.0728632
+N=20 | BAPnP: 0.0112412 | EPnP: 0.0548446 | CPnP: 0.088086 | SQPnP: 0.0536458
+N=50 | BAPnP: 0.0187434 | EPnP: 0.0614086 | CPnP: 0.118073 | SQPnP: 0.0600894
+N=100 | BAPnP: 0.0300875 | EPnP: 0.0749658 | CPnP: 0.164133 | SQPnP: 0.109543
+N=200 | BAPnP: 0.0551933 | EPnP: 0.104555 | CPnP: 0.476392 | SQPnP: 0.0878425
+N=500 | BAPnP: 0.132022 | EPnP: 0.224548 | CPnP: 0.797667 | SQPnP: 0.123581
+N=1000 | BAPnP: 0.251515 | EPnP: 0.398274 | CPnP: 1.35283 | SQPnP: 0.178035
+
+========================================================================
+  rgbd_dataset_freiburg1_desk (201 frames) | Thresh: 3 deg, 0.1m 
+========================================================================
+BAPnP      | Time: 0.142 ms | Succ: 79.1% | Err(R/t): 1.546 deg / 0.038 m
+EPnP       | Time: 0.460 ms | Succ: 76.6% | Err(R/t): 1.523 deg / 0.040 m
+SQPnP      | Time: 0.118 ms | Succ: 68.2% | Err(R/t): 1.522 deg / 0.038 m
+CPnP       | Time: 0.370 ms | Succ: 72.1% | Err(R/t): 1.538 deg / 0.039 m
+========================================================================
+
+
+=== South Building (128 frames) | Thresh: 3 deg, 1 m ===
+BAPnP      | Succ: 100.0% | Time: 0.498 ms | Err: 0.083 deg / 0.010 m
+EPnP       | Succ: 100.0% | Time: 0.931 ms | Err: 0.113 deg / 0.014 m
+CPnP       | Succ: 100.0% | Time: 1.393 ms | Err: 0.083 deg / 0.009 m
+SQPnP      | Succ: 100.0% | Time: 0.275 ms | Err: 0.091 deg / 0.011 m
+
+

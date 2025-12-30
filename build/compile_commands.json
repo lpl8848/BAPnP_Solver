@@ -1,0 +1,56 @@
+[
+{
+  "directory": "/home/luo/projects/MyBAPnP/build",
+  "command": "/usr/bin/c++  -I/home/luo/projects/MyBAPnP/include -isystem /usr/include/eigen3 -isystem /usr/include/opencv4 -O3 -DNDEBUG -std=gnu++14 -o CMakeFiles/run_benchmark.dir/main_benchmark.cpp.o -c /home/luo/projects/MyBAPnP/main_benchmark.cpp",
+  "file": "/home/luo/projects/MyBAPnP/main_benchmark.cpp",
+  "output": "CMakeFiles/run_benchmark.dir/main_benchmark.cpp.o"
+},
+{
+  "directory": "/home/luo/projects/MyBAPnP/build",
+  "command": "/usr/bin/c++  -I/home/luo/projects/MyBAPnP/include -isystem /usr/include/eigen3 -isystem /usr/include/opencv4 -O3 -DNDEBUG -std=gnu++14 -o CMakeFiles/run_benchmark.dir/src/bapnp.cpp.o -c /home/luo/projects/MyBAPnP/src/bapnp.cpp",
+  "file": "/home/luo/projects/MyBAPnP/src/bapnp.cpp",
+  "output": "CMakeFiles/run_benchmark.dir/src/bapnp.cpp.o"
+},
+{
+  "directory": "/home/luo/projects/MyBAPnP/build",
+  "command": "/usr/bin/c++  -I/home/luo/projects/MyBAPnP/include -isystem /usr/include/eigen3 -isystem /usr/include/opencv4 -O3 -DNDEBUG -std=gnu++14 -o CMakeFiles/run_benchmark.dir/src/cpnp.cpp.o -c /home/luo/projects/MyBAPnP/src/cpnp.cpp",
+  "file": "/home/luo/projects/MyBAPnP/src/cpnp.cpp",
+  "output": "CMakeFiles/run_benchmark.dir/src/cpnp.cpp.o"
+},
+{
+  "directory": "/home/luo/projects/MyBAPnP/build",
+  "command": "/usr/bin/c++  -I/home/luo/projects/MyBAPnP/include -isystem /usr/include/eigen3 -isystem /usr/include/opencv4 -O3 -DNDEBUG -std=gnu++14 -o CMakeFiles/run_tum.dir/main_tum.cpp.o -c /home/luo/projects/MyBAPnP/main_tum.cpp",
+  "file": "/home/luo/projects/MyBAPnP/main_tum.cpp",
+  "output": "CMakeFiles/run_tum.dir/main_tum.cpp.o"
+},
+{
+  "directory": "/home/luo/projects/MyBAPnP/build",
+  "command": "/usr/bin/c++  -I/home/luo/projects/MyBAPnP/include -isystem /usr/include/eigen3 -isystem /usr/include/opencv4 -O3 -DNDEBUG -std=gnu++14 -o CMakeFiles/run_tum.dir/src/bapnp.cpp.o -c /home/luo/projects/MyBAPnP/src/bapnp.cpp",
+  "file": "/home/luo/projects/MyBAPnP/src/bapnp.cpp",
+  "output": "CMakeFiles/run_tum.dir/src/bapnp.cpp.o"
+},
+{
+  "directory": "/home/luo/projects/MyBAPnP/build",
+  "command": "/usr/bin/c++  -I/home/luo/projects/MyBAPnP/include -isystem /usr/include/eigen3 -isystem /usr/include/opencv4 -O3 -DNDEBUG -std=gnu++14 -o CMakeFiles/run_tum.dir/src/cpnp.cpp.o -c /home/luo/projects/MyBAPnP/src/cpnp.cpp",
+  "file": "/home/luo/projects/MyBAPnP/src/cpnp.cpp",
+  "output": "CMakeFiles/run_tum.dir/src/cpnp.cpp.o"
+},
+{
+  "directory": "/home/luo/projects/MyBAPnP/build",
+  "command": "/usr/bin/c++  -I/home/luo/projects/MyBAPnP/include -isystem /usr/include/eigen3 -isystem /usr/include/opencv4 -O3 -DNDEBUG -std=gnu++14 -o CMakeFiles/run_colmap_bench.dir/main_colmap_benchmark.cpp.o -c /home/luo/projects/MyBAPnP/main_colmap_benchmark.cpp",
+  "file": "/home/luo/projects/MyBAPnP/main_colmap_benchmark.cpp",
+  "output": "CMakeFiles/run_colmap_bench.dir/main_colmap_benchmark.cpp.o"
+},
+{
+  "directory": "/home/luo/projects/MyBAPnP/build",
+  "command": "/usr/bin/c++  -I/home/luo/projects/MyBAPnP/include -isystem /usr/include/eigen3 -isystem /usr/include/opencv4 -O3 -DNDEBUG -std=gnu++14 -o CMakeFiles/run_colmap_bench.dir/src/bapnp.cpp.o -c /home/luo/projects/MyBAPnP/src/bapnp.cpp",
+  "file": "/home/luo/projects/MyBAPnP/src/bapnp.cpp",
+  "output": "CMakeFiles/run_colmap_bench.dir/src/bapnp.cpp.o"
+},
+{
+  "directory": "/home/luo/projects/MyBAPnP/build",
+  "command": "/usr/bin/c++  -I/home/luo/projects/MyBAPnP/include -isystem /usr/include/eigen3 -isystem /usr/include/opencv4 -O3 -DNDEBUG -std=gnu++14 -o CMakeFiles/run_colmap_bench.dir/src/cpnp.cpp.o -c /home/luo/projects/MyBAPnP/src/cpnp.cpp",
+  "file": "/home/luo/projects/MyBAPnP/src/cpnp.cpp",
+  "output": "CMakeFiles/run_colmap_bench.dir/src/cpnp.cpp.o"
+}
+]
