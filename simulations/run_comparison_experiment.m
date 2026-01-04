@@ -9,7 +9,7 @@
     % 1. 实验参数设置
     n_list = [6, 10, 20, 50, 80, 100]; 
     noise_std = 2.0;                   
-    n_trials = 1000; % 建议至少 100 次以保证统计意义
+    n_trials = 1000; 
     
     methods = {'BPnP-Greedy', 'BPnP-PCA-Real', 'BPnP-Random', 'BPnP-ConvHull-Oracle', 'EPnP-Gauss'};
     colors = {'r', 'b', 'g', 'c', 'k'};
@@ -29,7 +29,7 @@
         
         err_stats = nan(n_trials, length(methods), 2); 
         
-        % 使用普通 for 循环以便调试，稳定后可改回 parfor
+
         for k = 1:n_trials
             % 1. 生成仿真数据
             [pts3d, pts2d_noisy, pts2d_norm, K, R_gt, t_gt] = generate_data(npts, noise_std);
@@ -101,7 +101,7 @@ function [R, t] = pnp_proposed_wrapper(y_norm, P_world, strategy)
 end
 
 % =========================================================================
-% LOCAL FUNCTION 2: 线性求解器 (已修复索引 Bug)
+% LOCAL FUNCTION 2: 线性求解器 
 % =========================================================================
 function [R, t] = pnp_linear_with_strategy(y_norm, P_world, strategy)
     N = size(P_world, 2);
@@ -150,10 +150,10 @@ function [R, t] = pnp_linear_with_strategy(y_norm, P_world, strategy)
         base_idx = randperm(N, 4);
     end
     
-    % --- 核心修复：计算所有点的系数 ---
+
     P_basis = P_n(:, base_idx);
     Basis_Mat = P_basis(:, 1:3) - P_basis(:, 4);
-    RHS = P_n - P_basis(:, 4); % 计算所有 N 个点，而不是剔除后的点
+    RHS = P_n - P_basis(:, 4); 
     
     % 防止基底奇异
     if rcond(Basis_Mat) < 1e-12
@@ -186,8 +186,7 @@ function [R, t] = pnp_linear_with_strategy(y_norm, P_world, strategy)
     % 恢复深度
     Zc = alphas*rho(1) + betas*rho(2) + gammas*rho(3) + deltas*rho(4);
     
-    % --- 核心修复：更鲁棒的符号检查 ---
-    % 检查平均深度是否为正 (大多数点应该在相机前面)
+
     if mean(Zc) < 0
         rho = -rho;
         Zc = -Zc;
@@ -322,3 +321,4 @@ function plot_results(n_list, res_rot, res_trans, methods, colors, markers, line
     xlabel('Number of Points (N)'); ylabel('Median Translation Error (%)');
     title('Translation Error'); legend(methods); xlim([min(n_list), max(n_list)]);
 end
+
