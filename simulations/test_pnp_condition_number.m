@@ -1,17 +1,12 @@
 function test_pnp_basis_stability()
 % TEST_PNP_BASIS_STABILITY
 % 
-% 修正版逻辑:
-%   不再计算最终线性系统 L 或 M 的条件数（它们本来就该是奇异的）。
-%   转而计算 "重心坐标变换矩阵" (Barycentric Basis Matrix) 的条件数。
-%   这直接对应论文中 Eq. (3) 和 Perturbation Theory 的分析。
 
     clc; clear; close all;
 
     %% 1. 实验参数
     n_points = 20;
     n_trials = 500; 
-    % 压缩系数: 1.0 (立方体) -> 1e-7 (极度扁平)
     gammas = logspace(-1, -7, 10); 
     
     cond_bapnp = zeros(length(gammas), 1);
@@ -40,9 +35,6 @@ function test_pnp_basis_stability()
             Pw = R_rand * Pw;
 
             % --- B. BAPnP: 贪婪选点基底 ---
-            % 这里的核心是: 即使点云压扁，只要平面上分布得开，
-            % 我们的 Greedy 策略选出的三角形面积依然很大，
-            % 只是四面体的高很小。但相比于 EPnP 的虚拟点，我们撑得更满。
             [basis_idx] = select_greedy_basis(Pw);
             Pb = Pw(:, basis_idx);
             
@@ -55,7 +47,6 @@ function test_pnp_basis_stability()
             c_b_list = [c_b_list; cond(T_bapnp)];
             
             % --- C. EPnP: PCA 控制点基底 ---
-            % 必须使用标准 EPnP 策略：沿主轴分布，且幅度由特征值决定
             [U, S, ~] = svd(cov(Pw'));
             eigen_vals = diag(S);
             mean_p = mean(Pw, 2);
@@ -105,7 +96,7 @@ function test_pnp_basis_stability()
     text(1e-6, 1e2, 'BAPnP Stable', 'Color', 'r', 'FontSize', 10, 'HorizontalAlignment', 'center');
 end
 
-%% --- 你的贪婪选点策略 ---
+%% --- 贪婪选点策略 ---
 function base_idx = select_greedy_basis(P)
     N = size(P, 2);
     base_idx = zeros(1, 4);
@@ -147,3 +138,4 @@ function R = random_rotation()
     [Q, ~] = qr(randn(3));
     R = Q;
 end
+
