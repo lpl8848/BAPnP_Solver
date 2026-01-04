@@ -1,6 +1,4 @@
 function [R, t] = BAPnP(y_norm, P_world)
-% PNP_PROPOSED_GN 最终提交版算法 (Linear Init + GN Refinement)
-%
 % 算法流程:
 %   1. Linear Stage: 使用极速线性解法 (RPnP基底 + 线性同态) 获取初值。
 %   2. Refinement Stage: 使用 Gauss-Newton (Reprojection Error) 迭代优化。
@@ -12,8 +10,7 @@ function [R, t] = BAPnP(y_norm, P_world)
 % 输出:
 %   R, t:    最终优化的位姿 (R: 3x3, t: 3x1)
 
-    % Step 1: 极速线性初始化 (~0.5ms)
-    % (保持你原有的线性部分不变)
+    % Step 1: 极速线性初始化
     [R_init, t_init] = pnp_linear_ultra(y_norm, P_world);
     
     % Step 2: GN 迭代优化 (优化重投影误差)
@@ -22,7 +19,7 @@ function [R, t] = BAPnP(y_norm, P_world)
 end
 
 % =========================================================================
-% 子函数 1: 线性求解器 (Linear Solver - Ultra Fast) - 保持不变
+% 子函数 1: 线性求解器 (Linear Solver - Ultra Fast)
 % =========================================================================
 function [R, t] = pnp_linear_ultra(y_norm, P_world)
     N = size(P_world, 2);
@@ -36,7 +33,7 @@ function [R, t] = pnp_linear_ultra(y_norm, P_world)
     scale_3d = 1.732050807568877 / rms_dist; 
     P_n = P_centered * scale_3d;
     
-    % 3. 极速基底选择 (RPnP Style)
+    % 3. 极速基底选择
     base_idx = zeros(1, 4);
     [~, base_idx(1)] = max(sq_dists);
     p1 = P_n(:, base_idx(1));
@@ -195,13 +192,11 @@ function [R_opt, t_opt] = pnp_refine_gn(R_init, t_init, y_norm, P_world)
         J_v_trans = [zeros_row; inv_Z; -v_invZ; -1-v_proj.^2; u_proj.*v_proj; u_proj];
         
         % 拼接 Jacobian (2N x 6)
-        % 为了利用 MATLAB 的列优先特性，我们不显式构造大矩阵，而是利用分块
         % J = [J_u_trans'; J_v_trans']; 
         
         J = [J_u_trans, J_v_trans]'; % 这里转置变为 2N x 6
         
         % 5. 求解增量 (Normal Equation: J'J * delta = -J'r)
-        % MATLAB 的 \ 运算符会自动处理最小二乘，且比显式求逆更准
         delta = - (J \ residual);
         
         if norm(delta) < MIN_DELTA
@@ -232,3 +227,4 @@ function [R_opt, t_opt] = pnp_refine_gn(R_init, t_init, y_norm, P_world)
     R_opt = R;
     t_opt = t;
 end
+
