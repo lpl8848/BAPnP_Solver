@@ -14,7 +14,7 @@
 #include <opencv2/calib3d.hpp>
 #include <opencv2/core/eigen.hpp>
 
-// 引入算法
+
 #include "bapnp.h"
 #include "cpnp.h" 
 #include "ops.h"
@@ -22,13 +22,13 @@
 using namespace std;
 using namespace Eigen;
 
-// --- 配置参数 ---
-const double FILTER_ERR_THRESH = 1.0; // COLMAP 3D点过滤阈值 (px)
-const int MIN_INLIERS = 6;            // 最少点数 (放宽一点以测试极少点情况)
-const double THRESH_R = 2.0;          // 旋转成功阈值 (deg)
-const double THRESH_T = 1.0;          // 平移成功阈值 (m)
 
-// --- 数据结构 ---
+const double FILTER_ERR_THRESH = 1.0; 
+const int MIN_INLIERS = 6;            
+const double THRESH_R = 2.0;          
+const double THRESH_T = 1.0;          
+
+
 struct Camera {
     int id;
     int width, height;
@@ -47,18 +47,18 @@ struct Image {
     Matrix3d R_gt;
     Vector3d t_gt;
     int camera_id;
-    vector<Vector2d> pts2d;   // 2D 观测
-    vector<int> p3d_ids;      // 对应的 3D 点 ID
+    vector<Vector2d> pts2d;   
+    vector<int> p3d_ids;      
 };
 
-// --- 辅助函数：四元数转旋转矩阵 ---
+
 Matrix3d quat2rot(double qw, double qx, double qy, double qz) {
     Quaterniond q(qw, qx, qy, qz);
     q.normalize();
     return q.toRotationMatrix();
 }
 
-// --- 核心函数：读取 COLMAP 数据 ---
+// --- Core function: Read COLMAP data ---
 bool read_colmap(const string& base_path,
                  map<int, Point3D>& points3d,
                  map<int, Camera>& cameras,
@@ -66,7 +66,7 @@ bool read_colmap(const string& base_path,
 
     cout << "Loading COLMAP data from: " << base_path << endl;
 
-    // 1. 读取 points3D.txt
+   
     ifstream f_pts(base_path + "/points3D.txt");
     if (!f_pts.is_open()) return false;
 
@@ -84,7 +84,7 @@ bool read_colmap(const string& base_path,
     }
     cout << "Loaded " << points3d.size() << " valid 3D points." << endl;
 
-    // 2. 读取 cameras.txt
+   
     ifstream f_cam(base_path + "/cameras.txt");
     if (!f_cam.is_open()) return false;
     while (getline(f_cam, line)) {
@@ -108,13 +108,12 @@ bool read_colmap(const string& base_path,
             // SIMPLE_RADIAL: f, cx, cy, k
             cam.K(0,0) = p1; cam.K(1,1) = p1;
             cam.K(0,2) = p2; cam.K(1,2) = p3;
-            // 注意：这里忽略了畸变 k，假设输入点已去畸变或畸变很小
-            // 如果追求极致精度，应在这里读取 k，并在后续像素转归一化时进行去畸变
+
         }
         cameras[cam.id] = cam;
     }
 
-    // 3. 读取 images.txt
+
     ifstream f_img(base_path + "/images.txt");
     if (!f_img.is_open()) return false;
     while (getline(f_img, line)) {
@@ -146,7 +145,7 @@ bool read_colmap(const string& base_path,
     return true;
 }
 
-// --- 统计工具 ---
+
 struct Stats {
     string name;
     int success = 0;
@@ -166,12 +165,12 @@ void update_stats(Stats& s, double t_ms, double r_err, double t_err) {
     }
 }
 
-// ======================= 主程序 =======================
+// ======================= Main Program =======================
 int main(int argc, char** argv) {
     string dataset_path = "/home/luo/projects/MyBAPnP/south-building";
     if (argc > 1) dataset_path = argv[1];
 
-    // 1. 读取数据
+
     map<int, Point3D> points3d;
     map<int, Camera> cameras;
     vector<Image> images;
@@ -182,7 +181,7 @@ int main(int argc, char** argv) {
         return -1;
     }
 
-    // 2. 初始化算法统计
+
     Stats s_bapnp   = {"BAPnP"};
     Stats s_epnp    = {"EPnP"};
     Stats s_epnp_lm = {"EPnP+LM"};
@@ -191,13 +190,13 @@ int main(int argc, char** argv) {
 
     cout << "\nStarting Benchmark on " << images.size() << " images..." << endl;
 
-    // 3. 主循环
+
     int count = 0;
     for (const auto& img : images) {
         int N = img.pts2d.size();
         Matrix3d K = cameras[img.camera_id].K;
 
-        // 准备数据容器
+
         MatrixXd P_world(3, N);
         MatrixXd pts_norm(3, N);
         
@@ -205,7 +204,7 @@ int main(int argc, char** argv) {
         vector<cv::Point2d> cv_P2D;
         
         vector<Vector3d> cpnp_P3D;
-        vector<Vector2d> cpnp_P2D_norm; // 改用归一化坐标
+        vector<Vector2d> cpnp_P2D_norm; 
 
         for (int i = 0; i < N; ++i) {
             Vector3d Xw = points3d[img.p3d_ids[i]].xyz;
@@ -227,7 +226,7 @@ int main(int argc, char** argv) {
             cpnp_P2D_norm.emplace_back(yn(0), yn(1));
         }
 
-        // --- A. 运行 BAPnP (Ours) ---
+        // --- A.  BAPnP (Ours) ---
         Matrix3d R_est; Vector3d t_est;
         auto t1 = chrono::high_resolution_clock::now();
         BAPnP::solve(pts_norm, P_world, R_est, t_est);
@@ -237,7 +236,7 @@ int main(int argc, char** argv) {
         double err_t_b = (t_est - img.t_gt).norm();
         update_stats(s_bapnp, chrono::duration<double, milli>(t2 - t1).count(), err_r_b, err_t_b);
 
-        // --- B. 运行 EPnP (Standard Baseline) ---
+        // --- B. EPnP (Standard Baseline) ---
         cv::Mat cv_K(3,3,CV_64F), rvec, tvec, dist=cv::Mat::zeros(4,1,CV_64F);
         cv::eigen2cv(K, cv_K); 
 
@@ -247,7 +246,7 @@ int main(int argc, char** argv) {
         auto t4 = chrono::high_resolution_clock::now();
         double time_epnp_lin = chrono::duration<double, milli>(t4 - t3).count();
 
-        // 统计 Linear 结果
+        
         cv::Mat R_cv; cv::Rodrigues(rvec, R_cv);
         Matrix3d R_epnp; cv::cv2eigen(R_cv, R_epnp);
         Vector3d t_epnp(tvec.at<double>(0), tvec.at<double>(1), tvec.at<double>(2));
@@ -256,18 +255,17 @@ int main(int argc, char** argv) {
         double err_t_e = (t_epnp - img.t_gt).norm();
         update_stats(s_epnp, time_epnp_lin, err_r_e, err_t_e);
 
-        // --- B2. 运行 EPnP + LM (Robust Baseline) ---
-        // 复用 Linear 结果作为初值 (深拷贝)
+        // --- B2. EPnP + LM (Robust Baseline) ---
         cv::Mat rvec_ref = rvec.clone();
         cv::Mat tvec_ref = tvec.clone();
 
         auto t3_r = chrono::high_resolution_clock::now();
-        // 显式 Refine
+
         cv::solvePnPRefineLM(cv_P3D, cv_P2D, cv_K, dist, rvec_ref, tvec_ref);
         auto t4_r = chrono::high_resolution_clock::now();
         double time_refine = chrono::duration<double, milli>(t4_r - t3_r).count();
 
-        // 统计 Refine 结果
+
         cv::Mat R_cv_ref; cv::Rodrigues(rvec_ref, R_cv_ref);
         Matrix3d R_epnp_lm; cv::cv2eigen(R_cv_ref, R_epnp_lm);
         Vector3d t_epnp_lm(tvec_ref.at<double>(0), tvec_ref.at<double>(1), tvec_ref.at<double>(2));
@@ -276,15 +274,15 @@ int main(int argc, char** argv) {
         double err_t_elm = (t_epnp_lm - img.t_gt).norm();
         update_stats(s_epnp_lm, time_epnp_lin + time_refine, err_r_elm, err_t_elm);
 
-        // --- C. 运行 CPnP ---
+        // --- C.  CPnP ---
         {
-            // 参数设为单位内参，因为输入已经是归一化坐标了
+
             std::vector<double> params = {1.0, 1.0, 0.0, 0.0};
             Eigen::Vector4d q_out, q_gn;
             Eigen::Vector3d t_out, t_gn;
 
             auto t5 = chrono::high_resolution_clock::now();
-            // 传入 cpnp_P2D_norm (归一化坐标)
+
             pnpsolver::CPnP(cpnp_P2D_norm, cpnp_P3D, params, q_out, t_out, q_gn, t_gn);
             auto t6 = chrono::high_resolution_clock::now();
 
@@ -298,7 +296,7 @@ int main(int argc, char** argv) {
             update_stats(s_cpnp, chrono::duration<double, milli>(t6 - t5).count(), err_r_c, err_t_c);
         }
 
-        // --- D. 运行 SQPnP ---
+        // --- D. SQPnP ---
         #if CV_VERSION_MAJOR >= 4 && (CV_VERSION_MINOR > 5 || (CV_VERSION_MINOR == 5 && CV_VERSION_REVISION >= 3))
         {
             cv::Mat rvec_sq, tvec_sq;
@@ -319,7 +317,7 @@ int main(int argc, char** argv) {
         if (++count % 50 == 0) cout << "Processed " << count << " images." << endl;
     }
 
-    // 4. 打印报表
+
     cout << "\n=== South Building Benchmark Results ===" << endl;
     auto print = [](Stats s) {
         if (s.total == 0) return;
