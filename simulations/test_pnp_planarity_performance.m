@@ -115,20 +115,19 @@ end
 %% ------------------ Output tables ------------------
 %% ------------------ Final Paper Plot (3 Separate Figures) ------------------
 
-% === 1. 公共绘图设置 (统一风格) ===
-% 论文插图推荐尺寸：单栏一般宽 400-500px，高 300-400px
-fig_pos = [200, 200, 500, 400]; 
+% === 1. 公共绘图设置===
+
 
 line_styles = {'-', '--', '-.', ':', '-', '--', '-.', ':'};
 colors = lines(n_algs); 
-colors(1,:) = [0.85, 0.33, 0.1]; % Proposed 橙红色
+colors(1,:) = [0.85, 0.33, 0.1];
 markers     = {'o', 's', '^', 'd', 'v', '>', '<', 'p'};
 line_width = 1.5;
-marker_size = 8;     % 独立图可以把点画大一点，更清楚
+marker_size = 8;    
 font_name = 'Times New Roman';
-font_size = 14;      % 独立图字号可以大一点
+font_size = 14;     
 
-% 构造 X 轴标签 (等间距非连续)
+
 x_labels = arrayfun(@(x) sprintf('10^{%d}', round(log10(x))), z_spread_levels, 'UniformOutput', false);
 x_idx = 1:n_levels; 
 
@@ -150,8 +149,7 @@ set(gca, 'XTick', x_idx, 'XTickLabel', x_labels);
 xlabel('Degree of Coplanarity', 'FontName', font_name);
 ylabel('Rotation Error (deg)', 'FontName', font_name);
 
-% 【核心】截断 Y 轴
-% 建议：设为 Proposed 算法最大误差的 1.5 到 2 倍，让 EPnP 穿出去
+
 ylim([0, 5]); 
 
 % 字体与图例
@@ -180,7 +178,7 @@ set(gca, 'XTick', x_idx, 'XTickLabel', x_labels);
 xlabel('Degree of Coplanarity', 'FontName', font_name);
 ylabel('Translation Error (%)', 'FontName', font_name);
 
-% 【核心】截断 Y 轴
+
 ylim([0, 10]); 
 
 set(gca, 'FontName', font_name, 'FontSize', font_size);
@@ -207,11 +205,11 @@ set(gca, 'XTick', x_idx, 'XTickLabel', x_labels);
 xlabel('Degree of Coplanarity', 'FontName', font_name);
 ylabel('Success Rate (%)', 'FontName', font_name);
 
-% 成功率固定范围
+
 ylim([-2, 102]); 
 
 set(gca, 'FontName', font_name, 'FontSize', font_size);
-% 成功率图的图例通常放左下角（因为曲线通常在上方）
+
 legend('Location', 'northwest', 'Interpreter', 'none','FontSize',8);
 % title('Success Rate');
 
@@ -237,3 +235,4 @@ function [re, te] = pose_error(R_gt, t_gt, R_est, t_est)
     re = rad2deg(acos(v));
     te = norm(t_gt - t_est) / norm(t_gt) * 100;
 end
+
