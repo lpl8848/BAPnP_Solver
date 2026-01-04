@@ -111,11 +111,6 @@ xlabel('Gaussian Noise \sigma (pixels)', 'FontSize', 12, 'FontWeight', 'bold');
 ylabel('Median Rotation Error (deg)', 'FontSize', 12, 'FontWeight', 'bold');
 xlim([0, max(noise_levels)]);
 
-% -----------------------------------------------------------
-% [用户自定义] Y轴范围设置 (旋转折线图)
-% -----------------------------------------------------------
-% ylim([0, 5]);  % <--- 如果需要固定Y轴范围，请取消注释并修改数值
-% -----------------------------------------------------------
 
 % 图注设置
 legend(algo_names, 'Location', 'northwest', 'Interpreter', 'none', 'FontSize', 10);
@@ -138,11 +133,6 @@ xlabel('Gaussian Noise \sigma (pixels)', 'FontSize', 12, 'FontWeight', 'bold');
 ylabel('Median Translation Error (%)', 'FontSize', 12, 'FontWeight', 'bold');
 xlim([0, max(noise_levels)]);
 
-% -----------------------------------------------------------
-% [用户自定义] Y轴范围设置 (平移折线图)
-% -----------------------------------------------------------
-% ylim([0, 10]); % <--- 如果需要固定Y轴范围，请取消注释并修改数值
-% -----------------------------------------------------------
 
 legend(algo_names, 'Location', 'northwest', 'Interpreter', 'none', 'FontSize', 10);
 
@@ -158,10 +148,7 @@ if ~isempty(target_indices)
         rot_data_now   = raw_rot_data{idx};
         trans_data_now = raw_trans_data{idx};
         
-        % ========================================================
-        % [关键修改]：在此处根据噪声等级定义 Y 轴范围
-        % ========================================================
-        % 使用 abs(x-y)<1e-6 是为了防止浮点数比较误差
+
         if abs(curr_noise_val - 1.0) < 1e-6
             % 噪声 = 1.0 时的设置
             lim_rot   = [0, 2]; 
@@ -178,7 +165,7 @@ if ~isempty(target_indices)
             lim_trans = [0, 4];
             
         else
-            % 其他情况的默认设置 (比如以后加了噪声 2.0)
+            % 其他情况的默认设置 
             lim_rot   = [0, 5];
             lim_trans = [0, 5];
         end
@@ -196,7 +183,7 @@ if ~isempty(target_indices)
                'FontSize', 11, 'FontWeight', 'bold');
         xtickangle(45);
         
-        % 应用动态设置的 Y 轴范围
+
         ylim(lim_rot); 
         
         
@@ -211,7 +198,7 @@ if ~isempty(target_indices)
                'FontSize', 11, 'FontWeight', 'bold');
         xtickangle(45);
         
-        % 应用动态设置的 Y 轴范围
+
         ylim(lim_trans); 
     end
 end
@@ -220,3 +207,4 @@ fprintf('\n绘图完成。\n');
 fprintf('折线图已生成。\n');
 fprintf('箱线图已生成 (根据噪声等级 %.1f, %.1f, %.1f 自动调整了Y轴范围)。\n', ...
     boxplot_noise_targets);
+
