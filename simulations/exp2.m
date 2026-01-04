@@ -2,9 +2,9 @@ clc; clear; close all;
 
 %% 1. 实验设置
 num_trials = 500;           % 实验次数
-fixed_noise = 2.0;          % [关键] 固定噪声等级 (推荐 2.0 px)
+fixed_noise = 2.0;          % 固定噪声等级 
 
-% 定义点数变化列表 (重点在小点数区域加密)
+% 定义点数变化列表
 n_points_list = [6, 8, 10, 12, 15, 20, 30, 50, 80, 100];
 num_n_levels = length(n_points_list);
 
@@ -45,7 +45,7 @@ for n_idx = 1:num_n_levels
     tmp_time      = zeros(num_trials, num_algos);
     
     for i = 1:num_trials
-        % 3.1 生成数据 (注意这里输入的是 curr_n)
+        % 3.1 生成数据 
         [pts3d, ~, pts2d_norm, ~, R_gt, t_gt] = ...
             generate_P6P_3D_to_2D_point_correspondences_noise(curr_n, fixed_noise);
         
@@ -113,11 +113,6 @@ xlabel('Number of Points (N)', 'FontSize', 12, 'FontWeight', 'bold');
 ylabel('Median Rotation Error (deg)', 'FontSize', 12, 'FontWeight', 'bold');
 xlim([min(n_points_list), max(n_points_list)]);
 
-% -----------------------------------------------------------
-% [用户自定义] Y轴范围设置 (旋转折线图)
-% -----------------------------------------------------------
-% ylim([0, 10]); % <--- 若需固定范围请取消注释
-% -----------------------------------------------------------
 
 legend(algo_names, 'Location', 'northeast', 'Interpreter', 'none', 'FontSize', 10);
 
@@ -139,11 +134,6 @@ xlabel('Number of Points (N)', 'FontSize', 12, 'FontWeight', 'bold');
 ylabel('Median Translation Error (%)', 'FontSize', 12, 'FontWeight', 'bold');
 xlim([min(n_points_list), max(n_points_list)]);
 
-% -----------------------------------------------------------
-% [用户自定义] Y轴范围设置 (平移折线图)
-% -----------------------------------------------------------
-% ylim([0, 10]); % <--- 若需固定范围请取消注释
-% -----------------------------------------------------------
 
 legend(algo_names, 'Location', 'northeast', 'Interpreter', 'none', 'FontSize', 10);
 
@@ -159,11 +149,7 @@ if ~isempty(target_indices)
         rot_data_now   = raw_rot_data{idx};
         trans_data_now = raw_trans_data{idx};
         
-        % ========================================================
-        % [关键修改]：根据点数 N 动态定义 Y 轴范围
-        % 点数越少(N小)，误差通常越大 -> 范围给大一点
-        % 点数越多(N大)，误差通常越小 -> 范围给小一点
-        % ========================================================
+
         if curr_n_val <= 6
             % N=6 (极少点，误差大)
             lim_rot   = [0, 15]; 
@@ -203,7 +189,7 @@ if ~isempty(target_indices)
                'FontSize', 11, 'FontWeight', 'bold');
         xtickangle(45);
         
-        % 应用动态 Y 轴
+
         ylim(lim_rot);
         
         
@@ -218,7 +204,7 @@ if ~isempty(target_indices)
                'FontSize', 11, 'FontWeight', 'bold');
         xtickangle(45);
         
-        % 应用动态 Y 轴
+
         ylim(lim_trans);
         
     end
@@ -228,3 +214,4 @@ fprintf('\n实验二绘图完成。\n');
 fprintf('折线图已生成 (LinePlot...)\n');
 fprintf('箱线图已生成 (Box...N...)，已根据 N=%d %d %d %d 自动调整 Y 轴。\n', ...
     boxplot_n_targets_new);
+
