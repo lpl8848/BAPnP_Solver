@@ -1,11 +1,7 @@
 function [R, t] = pnp_linear_only(y_norm, P_world)
 % PNP_LINEAR_ONLY 仅包含线性求解部分的 PnP 算法 (无迭代优化)
 %
-% 适用场景:
-%   1. 论文 Ablation Study (作为 Baseline 对比)
-%   2. 极端追求速度 (< 0.05ms) 且对精度要求不苛刻的场景
-%   3. RANSAC 内部的一致性检验 (Inlier Check)
-%
+
 % 输入:
 %   y_norm:  2xN 或 3xN 归一化平面坐标 (x, y) 或 (x, y, 1)
 %   P_world: 3xN 世界坐标
@@ -13,12 +9,10 @@ function [R, t] = pnp_linear_only(y_norm, P_world)
 % 输出:
 %   R, t:    线性解算的位姿
 
-    % =====================================================================
-    % 核心线性求解逻辑 (同之前的 pnp_linear_ultra)
-    % =====================================================================
+
     N = size(P_world, 2);
     
-    % 1. 3D 数据中心化与归一化 (提升数值稳定性)
+    % 1. 3D 数据中心化与归一化 
     cent_3d = mean(P_world, 2);
     P_centered = P_world - cent_3d;
     sq_dists = sum(P_centered.^2, 1);
@@ -27,7 +21,7 @@ function [R, t] = pnp_linear_only(y_norm, P_world)
     scale_3d = 1.732050807568877 / rms_dist; 
     P_n = P_centered * scale_3d;
     
-    % 2. 极速基底选择 (RPnP Style - 选取分布最广的4个点)
+    % 2. 极速基底选择
     base_idx = zeros(1, 4);
     [~, base_idx(1)] = max(sq_dists);
     p1 = P_n(:, base_idx(1));
@@ -63,7 +57,7 @@ function [R, t] = pnp_linear_only(y_norm, P_world)
     P1=P_n_perm(:,1); P2=P_n_perm(:,2); P3=P_n_perm(:,3); 
     C0 = (P1+P2+P3)/3;
     
-    % 构造局部坐标系 (用于快速求解重心坐标)
+    % 构造局部坐标系 
     r1 = P1 - C0; n1 = 1/sqrt(sum(r1.^2)); r1 = r1 * n1;
     v12 = P2 - C0; 
     r3 = [r1(2)*v12(3)-r1(3)*v12(2); r1(3)*v12(1)-r1(1)*v12(3); r1(1)*v12(2)-r1(2)*v12(1)];
@@ -115,7 +109,6 @@ function [R, t] = pnp_linear_only(y_norm, P_world)
     t_est_norm = mean(P_cam_metric, 2);
     
     % 6. 单步代数对齐 (One-Step Analytic Alignment)
-    % 注意：这仍属于闭式解（Closed-form），不算迭代优化
     P_cam_ref = R_est * P_n_perm + t_est_norm;
     Z_ref = P_cam_ref(3, :);
     P_cam_ref_corr = [y_norm_perm(1,:).*Z_ref; y_norm_perm(2,:).*Z_ref; Z_ref];
@@ -130,3 +123,4 @@ function [R, t] = pnp_linear_only(y_norm, P_world)
     t = t_temp / scale_3d - R * cent_3d;
     
 end
+
