@@ -1,5 +1,5 @@
 function [R, t] = pnp_linear_only(y_norm, P_world)
-% PNP_LINEAR_ONLY 仅包含线性求解部分的 PnP 算法 (无迭代优化)
+% PNP_LINEAR_ONLY 仅包含线性求解部分的 BAPnP 算法 (无迭代优化)
 %
 
 % 输入:
@@ -123,4 +123,5 @@ function [R, t] = pnp_linear_only(y_norm, P_world)
     t = t_temp / scale_3d - R * cent_3d;
     
 end
+
 
