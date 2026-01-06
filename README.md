@@ -48,9 +48,9 @@ The C++ source code is located in the `src/` directory. It is designed for real-
 ### 2.1 Source Files
 
 * `src/bapnp.cpp`: The C++ implementation of the BAPnP algorithm.
-* `src/main_benchmark.cpp`: Runtime comparison against OpenCV implementations.
-* `src/main_colmap_benchmark.cpp`: Evaluation on the **South Building Dataset**.
-* `src/main_tum.cpp`: Evaluation on the **TUM RGB-D Dataset**.
+* `main_benchmark.cpp`: Runtime comparison against OpenCV implementations.
+* `main_colmap_benchmark.cpp`: Evaluation on the **South Building Dataset**.
+* `main_tum.cpp`: Evaluation on the **TUM RGB-D Dataset**.
 
 ### 2.2 Build and Run
 
