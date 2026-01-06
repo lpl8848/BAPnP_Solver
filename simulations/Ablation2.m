@@ -39,7 +39,7 @@ for i = 1:length(noise_levels)
         % A. Proposed Algorithm (BAPnP)
         % -------------------------------------------------
         try
-            [R_est, t_est] = pnp_proposed_new2(normalized_pts2d_noisy, pts3d);
+            [R_est, t_est] = pnp_linear_only(normalized_pts2d_noisy, pts3d);
             [r_err, t_err] = calc_pose_error(R_est, t_est, R_true, t_true);
             if ~isnan(r_err) && ~isnan(t_err)
                 stats(1,1) = stats(1,1) + r_err;
@@ -296,5 +296,6 @@ function [R,T,Xc,best_solution]=efficient_pnp_custom_cpts(x3d_h,x2d_h,A,Cw_custo
     R=sol(best_solution).R;
     T=sol(best_solution).T;
 end
+
 
 
