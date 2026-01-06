@@ -2,8 +2,7 @@
 % 仿真实验：对比 BAPnP, EPnP (Standard), 和 EPnP (with Greedy Base Selection)
 clear; clc; close all;
 
-% 添加路径 (请根据你的实际文件夹结构调整)
-addpath(genpath('EPnP')); % 假设 EPnP 的底层函数在这个文件夹里
+addpath(genpath('EPnP')); 
 
 % ================= 参数设置 =================
 npts = 20;                  % 点的数量
@@ -29,12 +28,10 @@ for i = 1:length(noise_levels)
     
     for k = 1:num_trials
         % 1. 生成数据
-        % 注意：这里假设你使用的是你自己的生成函数。如果不可用，请替换为 generate_noisy_input_data
         try
             [pts3d, ~, normalized_pts2d_noisy, ~, R_true, t_true] = ...
                 generate_P6P_3D_to_2D_point_correspondences_noise(npts, noise);
         catch
-             % 如果没有你的生成函数，尝试用简单的替代 (仅用于演示，建议保留你的生成函数)
              error('请确保 generate_P6P_3D_to_2D_point_correspondences_noise 函数在路径中');
         end
         
@@ -56,7 +53,6 @@ for i = 1:length(noise_levels)
         % B. EPnP Algorithm (Standard PCA Bases)
         % -------------------------------------------------
         try
-            % 假设 run_epnp 是调用标准 EPnP 的接口
             [R_est, t_est] = run_epnp(normalized_pts2d_noisy, pts3d);
             [r_err, t_err] = calc_pose_error(R_est, t_est, R_true, t_true);
             if ~isnan(r_err) && ~isnan(t_err)
@@ -300,3 +296,4 @@ function [R,T,Xc,best_solution]=efficient_pnp_custom_cpts(x3d_h,x2d_h,A,Cw_custo
     R=sol(best_solution).R;
     T=sol(best_solution).T;
 end
+
