@@ -1,6 +1,6 @@
 
     % =====================================================================
-    % PnP 选点策略对比实验 (FIXED VERSION)
+    % Ablation1
     % =====================================================================
     
     clc; clear; close all;
@@ -321,4 +321,5 @@ function plot_results(n_list, res_rot, res_trans, methods, colors, markers, line
     xlabel('Number of Points (N)'); ylabel('Median Translation Error (%)');
     title('Translation Error'); legend(methods); xlim([min(n_list), max(n_list)]);
 end
+
 
