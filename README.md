@@ -64,14 +64,11 @@ cd build
 cmake .. 
 make -j
 
-**Runtime Benchmark:**
-```bash
+Runtime Benchmark:
 ./run_benchmark
 
-**TUM RGB-D Experiment:**
-```bash
+TUM RGB-D Experiment:
 ./run_tum
 
-**South Building (COLMAP) Experiment:**
-```bash
+South Building (COLMAP) Experiment:
 ./run_colmap_bench
