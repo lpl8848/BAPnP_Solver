@@ -52,7 +52,20 @@ The C++ source code is located in the `src/` directory. It is designed for real-
 * `main_colmap_benchmark.cpp`: Evaluation on the **South Building Dataset**.
 * `main_tum.cpp`: Evaluation on the **TUM RGB-D Dataset**.
 
-### 2.2 Build and Run
+### 2.2 Dataset Preparation
+
+Before running the real-world benchmarks, please download the required datasets. Due to size constraints, they are not included in this repository.
+
+1. **South Building Dataset**:
+   * **Download**: Visit [COLMAP Datasets](https://colmap.github.io/datasets.html) and download "South Building".
+   * **Setup**: Extract the dataset and ensure the path matches the configuration in `main_colmap_benchmark.cpp` .
+
+2. **TUM RGB-D Dataset**:
+   * **Download**: Visit [TUM RGB-D Benchmark](https://cvg.cit.tum.de/data/datasets/rgbd-dataset/download#freiburg1_desk).
+   * **Sequence**: We use the `freiburg1_desk` sequence for evaluation.
+   * **Setup**: Download the sequence and place it in the working directory or update the path in `main_tum.cpp`.
+     
+### 2.3 Build and Run
 
 Ensure you have a C++ compiler (supports C++11 or higher) and CMake installed.
 
