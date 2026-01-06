@@ -63,3 +63,15 @@ cd build
 # Assuming CMake is used to generate the Makefile
 cmake .. 
 make -j
+
+**Runtime Benchmark:**
+```bash
+./run_benchmark
+
+**TUM RGB-D Experiment:**
+```bash
+./run_tum
+
+**South Building (COLMAP) Experiment:**
+```bash
+./run_colmap_bench
