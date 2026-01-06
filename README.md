@@ -12,7 +12,7 @@ The MATLAB code is located in the `simulations/` directory. It includes the algo
 
 To run the comparisons, you need to download the baseline algorithms and add them to your MATLAB path:
 
-1. **MLPnP**: Download from [urbste/MLPnP_matlab_toolbox](https://github.com/urbste/MLPnP_matlab_toolbox).
+1. **MLPnP and other algorithms**: Download from [urbste/MLPnP_matlab_toolbox](https://github.com/urbste/MLPnP_matlab_toolbox).
 2. **CPnP**: Download from [LIAS-CUHKSZ/CPnP-A-Consistent-PnP-Solver](https://github.com/LIAS-CUHKSZ/CPnP-A-Consistent-PnP-Solver).
 
 **Setup:**
@@ -33,7 +33,7 @@ Use the following scripts to reproduce the figures presented in the paper:
 | Figure in Paper | Description | MATLAB Script |
 | :--- | :--- | :--- |
 | **Fig. 1** | Geometric Comparison (Tetrahedron Volume) | `Tetrahedron.m` |
-| **Fig. 2** | Ablation Studies (Selection Strategy & Stability) | `Ablation1.m`, `Ablation2.m` |
+| **Fig. 2** | Ablation Studies| `Ablation1.m`, `Ablation2.m` |
 | **Fig. 3** | Robustness to Image Noise | `exp1.m` |
 | **Fig. 4** | Robustness to Point Density | `exp2.m` |
 | **Fig. 5** | Computational Efficiency Plot | `plot_time.m` |
