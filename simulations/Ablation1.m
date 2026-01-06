@@ -1,112 +1,84 @@
+% =====================================================================
+% Ablation1
+% =====================================================================
+% =====================================================================
 
-    % =====================================================================
-    % Ablation1
-    % =====================================================================
-    
-    clc; clear; close all;
-    warning('off', 'all'); 
+clc; clear; close all;
+warning('off', 'all'); 
 
-    % 1. 实验参数设置
-    n_list = [6, 10, 20, 50, 80, 100]; 
-    noise_std = 2.0;                   
-    n_trials = 1000; 
-    
-    methods = {'BPnP-Greedy', 'BPnP-PCA-Real', 'BPnP-Random', 'BPnP-ConvHull-Oracle', 'EPnP-Gauss'};
-    colors = {'r', 'b', 'g', 'c', 'k'};
-    markers = {'-o', '-s', '-^', '--d', '--x'};
-    linewidths = [2.5, 1.5, 1.5, 1.5, 2.0];
-    
-    res_rot_median = zeros(length(n_list), length(methods));
-    res_trans_median = zeros(length(n_list), length(methods));
-    
-    fprintf('======================================================\n');
-    fprintf('开始对比实验: Noise = %.1f px, Trials = %d\n', noise_std, n_trials);
-    fprintf('======================================================\n');
+% 1. 实验参数设置
+n_list = [6, 10, 20, 50, 80, 100]; 
+noise_std = 2.0;                    
+n_trials = 2000; 
+ 
+methods = {'BPnP (Greedy)', 'BPnP-PCA', 'BPnP-Random', 'BPnP-Convex'};
+colors = {'r', 'b', 'g', 'c'};
+markers = {'-o', '-s', '-^', '--d'};
+linewidths = [2.5, 1.5, 1.5, 1.5];
+ 
+res_rot_median = zeros(length(n_list), length(methods));
+res_trans_median = zeros(length(n_list), length(methods));
+ 
+fprintf('======================================================\n');
+fprintf('开始对比实验: Noise = %.1f px, Trials = %d\n', noise_std, n_trials);
+fprintf('======================================================\n');
 
-    for i = 1:length(n_list)
-        npts = n_list(i);
-        fprintf('正在处理点数 N = %3d ... ', npts);
+for i = 1:length(n_list)
+    npts = n_list(i);
+    fprintf('正在处理点数 N = %3d ... ', npts);
+    
+    err_stats = nan(n_trials, length(methods), 2); 
+    
+    for k = 1:n_trials
+        % 1. 生成仿真数据
+        [pts3d, pts2d_noisy, pts2d_norm, K, R_gt, t_gt] = generate_data(npts, noise_std);
+        P_world = pts3d;
+        y_norm = pts2d_norm; 
         
-        err_stats = nan(n_trials, length(methods), 2); 
         
-
-        for k = 1:n_trials
-            % 1. 生成仿真数据
-            [pts3d, pts2d_noisy, pts2d_norm, K, R_gt, t_gt] = generate_data(npts, noise_std);
-            P_world = pts3d;
-            y_norm = pts2d_norm(1:2, :); 
-            
-            % --- 1. Greedy ---
-            [R1, t1] = pnp_proposed_wrapper(y_norm, P_world, 'greedy');
-            [err_stats(k,1,1), err_stats(k,1,2)] = calc_error(R_gt, t_gt, R1, t1);
-            
-            % --- 2. PCA-Real ---
-            [R2, t2] = pnp_proposed_wrapper(y_norm, P_world, 'pca_real');
-            [err_stats(k,2,1), err_stats(k,2,2)] = calc_error(R_gt, t_gt, R2, t2);
-            
-            % --- 3. Random ---
-            [R3, t3] = pnp_proposed_wrapper(y_norm, P_world, 'random');
-            [err_stats(k,3,1), err_stats(k,3,2)] = calc_error(R_gt, t_gt, R3, t3);
-
-            % --- 4. Oracle ---
-            [R4, t4] = pnp_proposed_wrapper(y_norm, P_world, 'convex_opt');
-            [err_stats(k,4,1), err_stats(k,4,2)] = calc_error(R_gt, t_gt, R4, t4);
-
-            % --- 5. EPnP-Gauss ---
-            try
-                % EPnP 接口适配
-                P_h = [P_world; ones(1, npts)]';     
-                y_pix_h = [pts2d_noisy; ones(1, npts)]'; 
-                if exist('efficient_pnp_gauss', 'file')
-                    [R5, t5] = efficient_pnp_gauss(P_h, y_pix_h, K);
-                    [err_stats(k,5,1), err_stats(k,5,2)] = calc_error(R_gt, t_gt, R5, t5);
-                end
-            catch
-                % EPnP 偶尔会因为奇异值挂掉，这里允许它跳过
-            end
-        end
+        % --- 1. Greedy (Proposed) ---
+        [R1, t1] = pnp_linear_strategy_impl(y_norm, P_world, 'greedy');
+        [err_stats(k,1,1), err_stats(k,1,2)] = calc_error(R_gt, t_gt, R1, t1);
         
-        % 统计中位数
-        for m = 1:length(methods)
-            valid_data = squeeze(err_stats(:, m, :));
-            valid_idx = ~isnan(valid_data(:,1));
-            if sum(valid_idx) > 0
-                res_rot_median(i, m) = median(valid_data(valid_idx, 1));
-                res_trans_median(i, m) = median(valid_data(valid_idx, 2));
-            else
-                res_rot_median(i, m) = nan;
-                res_trans_median(i, m) = nan;
-            end
-        end
-        fprintf('完成。\n');
+        % --- 2. PCA-Real ---
+        [R2, t2] = pnp_linear_strategy_impl(y_norm, P_world, 'pca_real');
+        [err_stats(k,2,1), err_stats(k,2,2)] = calc_error(R_gt, t_gt, R2, t2);
+        
+        % --- 3. Random ---
+        [R3, t3] = pnp_linear_strategy_impl(y_norm, P_world, 'random');
+        [err_stats(k,3,1), err_stats(k,3,2)] = calc_error(R_gt, t_gt, R3, t3);
+
+        % --- 4. Convex Hull Oracle ---
+        [R4, t4] = pnp_linear_strategy_impl(y_norm, P_world, 'convex_opt');
+        [err_stats(k,4,1), err_stats(k,4,2)] = calc_error(R_gt, t_gt, R4, t4);
     end
     
-    % 绘图
-    plot_results(n_list, res_rot_median, res_trans_median, methods, colors, markers, linewidths);
-
-
-% =========================================================================
-% LOCAL FUNCTION 1: 算法 Wrapper
-% =========================================================================
-function [R, t] = pnp_proposed_wrapper(y_norm, P_world, strategy)
-    % 线性初始化
-    [R_init, t_init] = pnp_linear_with_strategy(y_norm, P_world, strategy);
-    
-    % LHM 优化需要归一化的视线向量
-    V_img = [y_norm; ones(1, size(y_norm, 2))];
-    norms = sqrt(sum(V_img.^2, 1));
-    V_img = V_img ./ norms;
-    
-    [R, t] = pnp_refine_lhm(R_init, t_init, V_img, P_world);
+    % 统计中位数
+    for m = 1:length(methods)
+        valid_data = squeeze(err_stats(:, m, :));
+        valid_idx = ~isnan(valid_data(:,1));
+        if sum(valid_idx) > 0
+            res_rot_median(i, m) = mean(valid_data(valid_idx, 1));
+            res_trans_median(i, m) = mean(valid_data(valid_idx, 2));
+        else
+            res_rot_median(i, m) = nan;
+            res_trans_median(i, m) = nan;
+        end
+    end
+    fprintf('完成。\n');
 end
+ 
+% 绘图
+plot_results(n_list, res_rot_median, res_trans_median, methods, colors, markers, linewidths);
+
 
 % =========================================================================
-% LOCAL FUNCTION 2: 线性求解器 
+% LINEAR SOLVER IMPLEMENTATION (Pure Linear, No Iterative Refinement)
 % =========================================================================
-function [R, t] = pnp_linear_with_strategy(y_norm, P_world, strategy)
+function [R, t] = pnp_linear_strategy_impl(y_norm, P_world, strategy)
     N = size(P_world, 2);
     
-    % --- 数据预处理 ---
+    % --- 1. 数据归一化 ---
     cent_3d = mean(P_world, 2);
     P_centered = P_world - cent_3d;
     sq_dists = sum(P_centered.^2, 1);
@@ -115,10 +87,11 @@ function [R, t] = pnp_linear_with_strategy(y_norm, P_world, strategy)
     scale_3d = sqrt(3) / rms_dist; 
     P_n = P_centered * scale_3d;
     
-    % --- 策略选择 ---
+    % --- 2. 策略选择 (核心对比部分) ---
     base_idx = zeros(1, 4);
     
     if strcmp(strategy, 'greedy')
+        % RPnP/BPnP 风格贪心
         [~, base_idx(1)] = max(sq_dists);
         p1 = P_n(:, base_idx(1));
         [~, base_idx(2)] = max(sum((P_n - p1).^2, 1));
@@ -131,6 +104,7 @@ function [R, t] = pnp_linear_with_strategy(y_norm, P_world, strategy)
         [~, base_idx(4)] = max((n_plane' * vecs).^2);
         
     elseif strcmp(strategy, 'pca_real')
+        % PCA 主轴方向选点
         [U, S, ~] = svd(P_n * P_n');
         sigmas = sqrt(diag(S) / N);
         targets = [mean(P_n,2), U(:,1)*sigmas(1)*2, U(:,2)*sigmas(2)*2, U(:,3)*sigmas(3)*2];
@@ -144,109 +118,125 @@ function [R, t] = pnp_linear_with_strategy(y_norm, P_world, strategy)
         end
         
     elseif strcmp(strategy, 'convex_opt')
+        % 凸包体积最大化 (Oracle)
         [~, base_idx] = strategy_convex_hull_optimal(P_n);
         
-    else % random or fallback
+    else % random
         base_idx = randperm(N, 4);
     end
     
-
-    P_basis = P_n(:, base_idx);
-    Basis_Mat = P_basis(:, 1:3) - P_basis(:, 4);
-    RHS = P_n - P_basis(:, 4); 
+    % --- 3. 线性求解 ---
+    perm = [base_idx, setdiff(1:N, base_idx)];
+    P_n_perm = P_n(:, perm);
+    y_norm_perm = y_norm(:, perm);
     
-    % 防止基底奇异
-    if rcond(Basis_Mat) < 1e-12
-        base_idx = randperm(N, 4);
-        P_basis = P_n(:, base_idx);
-        Basis_Mat = P_basis(:, 1:3) - P_basis(:, 4);
-        RHS = P_n - P_basis(:, 4);
-    end
-
-    ABC = Basis_Mat \ RHS; % 结果是 3xN
-    alphas = ABC(1,:); betas = ABC(2,:); gammas = ABC(3,:); deltas = 1 - sum(ABC, 1);
+    % 求解重心坐标
+    P1=P_n_perm(:,1); P2=P_n_perm(:,2); P3=P_n_perm(:,3); 
+    C0 = (P1+P2+P3)/3;
+    r1 = P1 - C0; n1 = 1/sqrt(sum(r1.^2)); r1 = r1 * n1;
+    v12 = P2 - C0; 
+    r3 = [r1(2)*v12(3)-r1(3)*v12(2); r1(3)*v12(1)-r1(1)*v12(3); r1(1)*v12(2)-r1(2)*v12(1)];
+    n3 = 1/sqrt(sum(r3.^2)); r3 = r3 * n3;
+    r2 = [r3(2)*r1(3)-r3(3)*r1(2); r3(3)*r1(1)-r3(1)*r1(3); r3(1)*r1(2)-r3(2)*r1(1)];
+    R0 = [r1'; r2'; r3'];
     
-    % 构建 L 矩阵
-    y_basis_h = [y_norm(:, base_idx); ones(1, 4)];
-    y_all_h   = [y_norm;   ones(1, N)];
-    L = zeros(3*N, 4);
+    W_prime = R0 * (P_n_perm - C0);
+    B = [W_prime(:,1)-W_prime(:,4), W_prime(:,2)-W_prime(:,4), W_prime(:,3)-W_prime(:,4)];
     
-    for i = 1:N
-        obs = y_all_h(:, i);
-        % 注意：这里的 alphas(i) 现在是安全的，因为它是 1xN
-        L(3*i-2:3*i, 1) = alphas(i) * cross(obs, y_basis_h(:,1));
-        L(3*i-2:3*i, 2) = betas(i) * cross(obs, y_basis_h(:,2));
-        L(3*i-2:3*i, 3) = gammas(i) * cross(obs, y_basis_h(:,3));
-        L(3*i-2:3*i, 4) = deltas(i) * cross(obs, y_basis_h(:,4));
+    if rcond(B) < 1e-12
+         base_idx = randperm(N, 4);
+         perm = [base_idx, setdiff(1:N, base_idx)];
+         P_n_perm = P_n(:, perm);
+         y_norm_perm = y_norm(:, perm);
+         Basis_Mat = P_n_perm(:,1:3) - P_n_perm(:,4);
+         B = Basis_Mat; 
     end
     
-    [~, ~, V_svd] = svd(L, 'econ');
-    rho = V_svd(:, end);
+    Coeffs = B \ (W_prime(:, 5:end) - W_prime(:,4));
+    alphas = Coeffs(1,:); betas = Coeffs(2,:); gammas = Coeffs(3,:); deltas = 1 - sum(Coeffs, 1);
     
-    % 恢复深度
-    Zc = alphas*rho(1) + betas*rho(2) + gammas*rho(3) + deltas*rho(4);
+    % 构建 M 矩阵
+    y1=y_norm_perm(:,1); y2=y_norm_perm(:,2); y3=y_norm_perm(:,3); y4=y_norm_perm(:,4);
+    y_others = y_norm_perm(:, 5:end);
     
-
-    if mean(Zc) < 0
-        rho = -rho;
-        Zc = -Zc;
-    end
+    cp1_x = y_others(2,:)*y1(3) - y_others(3,:)*y1(2); cp1_y = y_others(3,:)*y1(1) - y_others(1,:)*y1(3); cp1_z = y_others(1,:)*y1(2) - y_others(2,:)*y1(1);
+    cp2_x = y_others(2,:)*y2(3) - y_others(3,:)*y2(2); cp2_y = y_others(3,:)*y2(1) - y_others(1,:)*y2(3); cp2_z = y_others(1,:)*y2(2) - y_others(2,:)*y2(1);
+    cp3_x = y_others(2,:)*y3(3) - y_others(3,:)*y3(2); cp3_y = y_others(3,:)*y3(1) - y_others(1,:)*y3(3); cp3_z = y_others(1,:)*y3(2) - y_others(2,:)*y3(1);
+    cp4_x = y_others(2,:)*y4(3) - y_others(3,:)*y4(2); cp4_y = y_others(3,:)*y4(1) - y_others(1,:)*y4(3); cp4_z = y_others(1,:)*y4(2) - y_others(2,:)*y4(1);
     
-    P_cam_metric = [y_norm(1,:).*Zc; y_norm(2,:).*Zc; Zc];
+    L = [reshape([alphas.*cp1_x; alphas.*cp1_y; alphas.*cp1_z], [], 1), ...
+         reshape([betas .*cp2_x; betas .*cp2_y; betas .*cp2_z], [], 1), ...
+         reshape([gammas.*cp3_x; gammas.*cp3_y; gammas.*cp3_z], [], 1), ...
+         reshape([deltas.*cp4_x; deltas.*cp4_y; deltas.*cp4_z], [], 1)];
+     
+    [~, ~, V] = svd(L, 'econ');
+    rho = V(:, end);
+    if sum(rho) < 0, rho = -rho; end
+    if rho(1) < 1e-6, rho(1) = 1e-6; end
     
-    [R, t] = umeyama_alignment(P_world, P_cam_metric);
+    Z_others = alphas*rho(1) + betas*rho(2) + gammas*rho(3) + deltas*rho(4);
+    Z_all = [rho', Z_others];
+    
+    % --- 4. 绝对定向 (Procrustes) ---
+    % 将深度恢复到度量坐标系下计算 R 和 t
+    P_cam_norm = [y_norm_perm(1,:).*Z_all; y_norm_perm(2,:).*Z_all; Z_all];
+    cent_cam = mean(P_cam_norm, 2);
+    sq_norm_cam = sum((P_cam_norm - cent_cam).^2, 'all');
+    s_cam = sqrt(sq_norm_cam / N);
+    true_scale = sqrt(3) / s_cam;
+    P_cam_metric = P_cam_norm * true_scale;
+    
+    Bm = P_cam_metric - mean(P_cam_metric, 2);
+    H = P_n_perm * Bm';
+    [U, ~, V] = svd(H);
+    R_est = V * U';
+    if det(R_est) < 0, R_est = V * diag([1 1 -1]) * U'; end
+    t_est_norm = mean(P_cam_metric, 2);
+    
+    % --- 5. 简单的闭式 Refinement (可选，这里保留因为它是代数上的修正，不算迭代优化) ---
+    % 用计算出的 R 重新对齐一次，通常能减少 SVD 带来的代数误差
+    P_cam_ref = R_est * P_n_perm + t_est_norm;
+    Z_ref = P_cam_ref(3, :);
+    P_cam_ref_corr = [y_norm_perm(1,:).*Z_ref; y_norm_perm(2,:).*Z_ref; Z_ref];
+    Bm = P_cam_ref_corr - mean(P_cam_ref_corr, 2);
+    H = P_n_perm * Bm';
+    [U, ~, V] = svd(H);
+    R = V * U'; 
+    if det(R) < 0, R = V * diag([1 1 -1]) * U'; end
+    t_temp = mean(P_cam_ref_corr, 2);
+    
+    % 恢复 t 到世界尺度
+    t = t_temp / scale_3d - R * cent_3d;
 end
 
 % =========================================================================
-% LOCAL FUNCTION 3: LHM
+% HELPER: Convex Hull Oracle
 % =========================================================================
-function [R_opt, t_opt] = pnp_refine_lhm(R_init, t_init, V, P_world)
-    MAX_ITER = 5; TOL = 1e-5;
-    R = R_init; t = t_init;
-    p_bar = mean(P_world, 2); P_cent = P_world - p_bar;
-    current_err = inf;
-    for iter = 1:MAX_ITER
-        Q = R * P_world + t;
-        v_dot_Q = sum(V .* Q, 1);
-        Q_opt = V .* v_dot_Q; 
-        E_vec = Q - Q_opt;
-        new_err = sum(E_vec.^2, 'all');
-        if abs(current_err - new_err) < TOL, break; end
-        current_err = new_err;
-        q_bar = mean(Q_opt, 2); Q_cent = Q_opt - q_bar;
-        W = P_cent * Q_cent';
-        [U, ~, V_svd] = svd(W);
-        R = V_svd * U';
-        if det(R) < 0, R = V_svd * diag([1 1 -1]) * U'; end
-        t = q_bar - R * p_bar;
+function [vol, base_idx] = strategy_convex_hull_optimal(P_n)
+    try
+        K = convhull(P_n(1,:), P_n(2,:), P_n(3,:));
+    catch
+        base_idx = randperm(size(P_n,2), 4); vol=0; return;
     end
-    R_opt = R; t_opt = t;
+    hull_indices = unique(K(:));
+    M = numel(hull_indices);
+    if M < 4 
+        base_idx = randperm(size(P_n,2), 4); vol=0; return;
+    end
+    max_trials = 200; max_vol = 0; best_idx = hull_indices(1:4);
+    for k = 1:max_trials
+        if M == 4, idx = hull_indices; else, idx = hull_indices(randperm(M,4)); end
+        p1=P_n(:,idx(1)); p2=P_n(:,idx(2)); p3=P_n(:,idx(3)); p4=P_n(:,idx(4));
+        V = abs(det([p2-p1, p3-p1, p4-p1])) / 6;
+        if V > max_vol
+            max_vol = V; best_idx = idx;
+        end
+    end
+    base_idx = best_idx(:)'; vol = max_vol;
 end
 
 % =========================================================================
-% LOCAL FUNCTION 4: Umeyama (带尺度恢复)
-% =========================================================================
-function [R, t] = umeyama_alignment(P_src, P_dst)
-    n = size(P_src, 2);
-    mu_s = mean(P_src, 2); mu_d = mean(P_dst, 2);
-    P_s_cent = P_src - mu_s; P_d_cent = P_dst - mu_d;
-    sig_s = sum(sum(P_s_cent.^2)) / n; 
-    
-    K = P_d_cent * P_s_cent' / n;
-    [U, D, V] = svd(K); S = eye(3);
-    if det(K) < 0, S(3,3) = -1; end
-    R = U * S * V';
-    s = trace(D * S) / sig_s;
-    
-    % 恢复 t (P_dst = s * R * P_src + t)
-    % 我们需要 PnP 格式: P_cam = R * P_world + t_metric
-    % t_metric = t_aligned / s
-    t = mu_d - s * R * mu_s;
-    t = t / s; % 消除尺度模糊，对齐到 Ground Truth 尺度进行评估
-end
-
-% =========================================================================
-% LOCAL FUNCTION 5: 数据生成
+% HELPER: Data Generation
 % =========================================================================
 function [pts3d, pts2d_noisy, pts2d_norm, K, R, t] = generate_data(npts, noise_std)
     w=640; h=480; f=800; K=[f,0,w/2; 0,f,h/2; 0,0,1];
@@ -263,7 +253,7 @@ function [pts3d, pts2d_noisy, pts2d_norm, K, R, t] = generate_data(npts, noise_s
 end
 
 % =========================================================================
-% LOCAL FUNCTION 6: 误差计算
+% HELPER: Error Calculation
 % =========================================================================
 function [err_rot, err_t] = calc_error(R_gt, t_gt, R_est, t_est)
     R_diff = R_est * R_gt';
@@ -274,52 +264,37 @@ function [err_rot, err_t] = calc_error(R_gt, t_gt, R_est, t_est)
 end
 
 % =========================================================================
-% LOCAL FUNCTION 7: Convex Hull Oracle
-% =========================================================================
-function [vol, base_idx] = strategy_convex_hull_optimal(P_n)
-    try
-        K = convhull(P_n(1,:), P_n(2,:), P_n(3,:));
-    catch
-        base_idx = randperm(size(P_n,2), 4); vol=0; return;
-    end
-    hull_indices = unique(K(:));
-    M = numel(hull_indices);
-    if M < 4 
-        base_idx = randperm(size(P_n,2), 4); vol=0; return;
-    end
-    max_trials = 200; max_vol = 0; best_idx = hull_indices(1:4);
-    for k = 1:max_trials
-        idx = hull_indices(randperm(M,4));
-        p1=P_n(:,idx(1)); p2=P_n(:,idx(2)); p3=P_n(:,idx(3)); p4=P_n(:,idx(4));
-        V = abs(det([p2-p1, p3-p1, p4-p1])) / 6;
-        if V > max_vol
-            max_vol = V; best_idx = idx;
-        end
-    end
-    base_idx = best_idx(:)'; vol = max_vol;
-end
-
-% =========================================================================
-% LOCAL FUNCTION 8: 绘图工具
+% HELPER: Plotting (Two Separate Figures)
 % =========================================================================
 function plot_results(n_list, res_rot, res_trans, methods, colors, markers, linewidths)
-    figure('Color', 'w', 'Position', [100, 100, 1200, 500]);
+
+    % ------------------- Figure 1: Rotation Error -------------------
+    figure('Color', 'w', 'Position', [100, 100, 600, 500]);
+    hold on; grid on; box on;
     
-    subplot(1, 2, 1); hold on; grid on; box on;
     for m = 1:length(methods)
         plot(n_list, res_rot(:, m), [colors{m} markers{m}], ...
             'LineWidth', linewidths(m), 'MarkerSize', 8, 'MarkerFaceColor', colors{m});
     end
-    xlabel('Number of Points (N)'); ylabel('Median Rotation Error (deg)');
-    title('Rotation Error'); legend(methods);  xlim([min(n_list), max(n_list)]);
+    xlabel('Number of Points (N)');
+    ylabel('Rotation Error (deg)');
+    legend(methods, 'Location', 'best');
+    xlim([min(n_list), max(n_list)]);
+    title('Rotation Error vs Number of Points');
 
-    subplot(1, 2, 2); hold on; grid on; box on;
+
+    % ------------------- Figure 2: Translation Error -------------------
+    figure('Color', 'w', 'Position', [750, 100, 600, 500]);
+    hold on; grid on; box on;
+    
     for m = 1:length(methods)
         plot(n_list, res_trans(:, m), [colors{m} markers{m}], ...
             'LineWidth', linewidths(m), 'MarkerSize', 8, 'MarkerFaceColor', colors{m});
     end
-    xlabel('Number of Points (N)'); ylabel('Median Translation Error (%)');
-    title('Translation Error'); legend(methods); xlim([min(n_list), max(n_list)]);
+    xlabel('Number of Points (N)');
+    ylabel('Translation Error (%)');
+    legend(methods, 'Location', 'best');
+    xlim([min(n_list), max(n_list)]);
+    title('Translation Error vs Number of Points');
+
 end
-
-
