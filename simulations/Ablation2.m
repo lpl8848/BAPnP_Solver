@@ -1,4 +1,4 @@
-% main_experiment_errors.m
+% Ablation2.m
 % 仿真实验：对比 BAPnP, EPnP (Standard), 和 EPnP (with Greedy Base Selection)
 clear; clc; close all;
 
@@ -296,4 +296,5 @@ function [R,T,Xc,best_solution]=efficient_pnp_custom_cpts(x3d_h,x2d_h,A,Cw_custo
     R=sol(best_solution).R;
     T=sol(best_solution).T;
 end
+
 
