@@ -1,17 +1,17 @@
 clc; clear; close all;
 
-%% 1. 实验设置
-num_trials = 500;           % 实验次数
-fixed_noise = 2.0;          % 固定噪声等级 
+%% 
+num_trials = 500;           
+fixed_noise = 2.0;        
 
-% 定义点数变化列表
+
 n_points_list = [6, 8, 10, 12, 15, 20, 30, 50, 80, 100];
 num_n_levels = length(n_points_list);
 
-% 定义要画箱线图的具体点数 (代表性的：极少点、中等点、大量点)
+
 boxplot_n_targets = [6,10, 20, 100]; 
 
-% 定义算法
+
 algorithms = {
     'BAPnP',   @pnp_linear_only;
     'BAPnP-GN',   @BAPnP;
@@ -25,16 +25,16 @@ algorithms = {
 num_algos = size(algorithms, 1);
 algo_names = algorithms(:,1);
 
-%% 2. 初始化存储容器
+%% 2. 
 median_rot_err_per_level   = zeros(num_n_levels, num_algos);
 median_trans_err_per_level = zeros(num_n_levels, num_algos);
 raw_rot_data   = cell(num_n_levels, 1);
 raw_trans_data = cell(num_n_levels, 1);
 mean_time_per_level = zeros(num_n_levels, num_algos);
 
-fprintf('=== 开始运行实验二: 点数敏感度 (Noise=%.1f px) ===\n', fixed_noise);
+fprintf('=== (Noise=%.1f px) ===\n', fixed_noise);
 
-%% 3. 主循环
+%% 3. 
 h_wait = waitbar(0, 'Running Simulation...');
 
 for n_idx = 1:num_n_levels
@@ -45,11 +45,11 @@ for n_idx = 1:num_n_levels
     tmp_time      = zeros(num_trials, num_algos);
     
     for i = 1:num_trials
-        % 3.1 生成数据 
+        % 3.1 
         [pts3d, ~, pts2d_norm, ~, R_gt, t_gt] = ...
             generate_P6P_3D_to_2D_point_correspondences_noise(curr_n, fixed_noise);
         
-        % 3.2 遍历算法
+        % 3.2 
         for j = 1:num_algos
             algo_func = algorithms{j, 2};
             t_start = tic; 
@@ -66,11 +66,11 @@ for n_idx = 1:num_n_levels
         end
     end
     
-    % 3.3 存储统计数据
+    % 3.3 
     median_rot_err_per_level(n_idx, :)   = median(tmp_rot_err, 1);
     median_trans_err_per_level(n_idx, :) = median(tmp_trans_err, 1);
     
-    % 存储原始数据用于箱线图
+
     raw_rot_data{n_idx}   = tmp_rot_err;
     raw_trans_data{n_idx} = tmp_trans_err;
     
@@ -81,23 +81,23 @@ for n_idx = 1:num_n_levels
 end
 close(h_wait);
 
-%% 4. 绘图配置
+%% 4. 
 line_colors = lines(num_algos);
-line_colors(1,:) = [0.85, 0.33, 0.1]; % Proposed 橙红色
+line_colors(1,:) = [0.85, 0.33, 0.1]; % Proposed 
 idx_gauss = find(strcmp(algo_names, 'Proposed-Gauss'));
 if ~isempty(idx_gauss), line_colors(idx_gauss, :) = [0, 0.45, 0.74]; end
 
 line_styles = {'-', '--', '-.', ':', '-', '--', '-.', ':'};
 markers     = {'o', 's', '^', 'd', 'v', '>', '<', 'p'};
 
-% 确保箱线图的目标点数列表正确 (包含 10)
+
 boxplot_n_targets_new = [6, 10, 20, 100]; 
 target_indices = find(ismember(n_points_list, boxplot_n_targets_new));
 
-%% 5. 绘图 A: 折线图 (趋势分析) - 独立窗口
+%% 5. 
 
 % ========================================================
-% Figure A1: 旋转误差随点数变化 (Rotation Line Plot)
+% Figure A1:  (Rotation Line Plot)
 % ========================================================
 figure('Name', 'Exp2_Line_Rot', 'Color', 'w', 'Position', [100, 400, 600, 500]);
 hold on; grid on; box on;
@@ -118,7 +118,7 @@ legend(algo_names, 'Location', 'northeast', 'Interpreter', 'none', 'FontSize', 1
 
 
 % ========================================================
-% Figure A2: 平移误差随点数变化 (Translation Line Plot)
+% Figure A2:  (Translation Line Plot)
 % ========================================================
 figure('Name', 'Exp2_Line_Trans', 'Color', 'w', 'Position', [750, 400, 600, 500]);
 hold on; grid on; box on;
@@ -138,47 +138,47 @@ xlim([min(n_points_list), max(n_points_list)]);
 legend(algo_names, 'Location', 'northeast', 'Interpreter', 'none', 'FontSize', 10);
 
 
-%% 6. 绘图 B: 箱线图 (分布分析) - 独立窗口 & 动态Y轴
+%% 6. 
 
 if ~isempty(target_indices)
     for k = 1:length(target_indices)
         idx = target_indices(k);
         curr_n_val = n_points_list(idx);
         
-        % 准备数据
+       
         rot_data_now   = raw_rot_data{idx};
         trans_data_now = raw_trans_data{idx};
         
 
         if curr_n_val <= 6
-            % N=6 (极少点，误差大)
+            % N=6 
             lim_rot   = [0, 15]; 
             lim_trans = [0, 20];
             
         elseif curr_n_val == 10
-            % N=10 (少点，误差中等)
+            % N=10 
             lim_rot   = [0, 3];
             lim_trans = [0, 3];
             
         elseif curr_n_val == 20
-            % N=20 (中等点，误差小)
+            % N=20 
             lim_rot   = [0, 2];
             lim_trans = [0, 2];
             
         elseif curr_n_val >= 100
-            % N=100 (大量点，误差极小)
+            % N=100 
             lim_rot   = [0, 0.8];
             lim_trans = [0, 0.4];
             
         else
-            % 默认兜底
+          
             lim_rot   = [0, 5];
             lim_trans = [0, 5];
         end
         % ========================================================
 
         
-        % --- Figure B(k)-Rot: 旋转误差箱线图 ---
+        % --- Figure B(k)-Rot:  ---
         fig_name_rot = sprintf('Exp2_Box_Rot_N%d', curr_n_val);
         figure('Name', fig_name_rot, 'Color', 'w', 'Position', [100 + k*30, 100, 500, 400]);
         
@@ -193,7 +193,7 @@ if ~isempty(target_indices)
         ylim(lim_rot);
         
         
-        % --- Figure B(k)-Trans: 平移误差箱线图 ---
+        % --- Figure B(k)-Trans: ---
         fig_name_trans = sprintf('Exp2_Box_Trans_N%d', curr_n_val);
         figure('Name', fig_name_trans, 'Color', 'w', 'Position', [700 + k*30, 100, 500, 400]);
         
@@ -210,8 +210,6 @@ if ~isempty(target_indices)
     end
 end
 
-fprintf('\n实验二绘图完成。\n');
-fprintf('折线图已生成 (LinePlot...)\n');
-fprintf('箱线图已生成 (Box...N...)，已根据 N=%d %d %d %d 自动调整 Y 轴。\n', ...
-    boxplot_n_targets_new);
+
+
 
