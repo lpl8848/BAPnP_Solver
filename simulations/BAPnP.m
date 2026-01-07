@@ -1,30 +1,24 @@
 function [R, t] = BAPnP(y_norm, P_world)
-% 算法流程:
-%   1. Linear Stage: 使用极速线性解法 (RPnP基底 + 线性同态) 获取初值。
-%   2. Refinement Stage: 使用 Gauss-Newton (Reprojection Error) 迭代优化。
+% Input:
+%   y_norm:  2xN or 3xN 
+%   P_world: 3xN 
 %
-% 输入:
-%   y_norm:  2xN 或 3xN 归一化平面坐标 (x, y) 或 (x, y, 1)
-%   P_world: 3xN 世界坐标
-%
-% 输出:
-%   R, t:    最终优化的位姿 (R: 3x3, t: 3x1)
+% Output:
+%   R, t:    
 
-    % Step 1: 极速线性初始化
+    % Step 1: 
     [R_init, t_init] = pnp_linear_ultra(y_norm, P_world);
     
-    % Step 2: GN 迭代优化 (优化重投影误差)
+    % Step 2: GN 
     [R, t] = pnp_refine_gn(R_init, t_init, y_norm, P_world);
     
 end
 
-% =========================================================================
-% 子函数 1: 线性求解器 (Linear Solver - Ultra Fast)
-% =========================================================================
+
 function [R, t] = pnp_linear_ultra(y_norm, P_world)
     N = size(P_world, 2);
     
-    % 2. 3D 数据归一化
+
     cent_3d = mean(P_world, 2);
     P_centered = P_world - cent_3d;
     sq_dists = sum(P_centered.^2, 1);
@@ -33,7 +27,7 @@ function [R, t] = pnp_linear_ultra(y_norm, P_world)
     scale_3d = 1.732050807568877 / rms_dist; 
     P_n = P_centered * scale_3d;
     
-    % 3. 极速基底选择
+
     base_idx = zeros(1, 4);
     [~, base_idx(1)] = max(sq_dists);
     p1 = P_n(:, base_idx(1));
@@ -64,7 +58,7 @@ function [R, t] = pnp_linear_ultra(y_norm, P_world)
     P_n_perm = P_n(:, perm);
     y_norm_perm = y_norm(:, perm);
     
-    % 4. 线性求解深度
+
     P1=P_n_perm(:,1); P2=P_n_perm(:,2); P3=P_n_perm(:,3); 
     C0 = (P1+P2+P3)/3;
     
@@ -131,15 +125,13 @@ function [R, t] = pnp_linear_ultra(y_norm, P_world)
     t = t_temp / scale_3d - R * cent_3d;
 end
 
-% =========================================================================
-% 子函数 2: Gauss-Newton 优化器 (Minimizing Reprojection Error)
-% =========================================================================
+
 function [R_opt, t_opt] = pnp_refine_gn(R_init, t_init, y_norm, P_world)
-    % 配置参数
+
     MAX_ITER = 10;
-    MIN_DELTA = 1e-6; % 收敛阈值
+    MIN_DELTA = 1e-6; 
     
-    % 确保输入观测点是 2xN 格式 (归一化平面坐标 u, v)
+
     if size(y_norm, 1) == 3
         pts_obs = y_norm(1:2, :) ./ y_norm(3, :);
     else
@@ -151,63 +143,60 @@ function [R_opt, t_opt] = pnp_refine_gn(R_init, t_init, y_norm, P_world)
     t = t_init;
     
     for iter = 1:MAX_ITER
-        % 1. 前向投影 P_cam = R*P_w + t
+
         P_cam = R * P_world + t;
         X = P_cam(1, :);
         Y = P_cam(2, :);
         Z = P_cam(3, :);
         
-        % 防止除零 (虽然良好的初始化通常不会遇到 Z=0)
+
         Z(abs(Z) < 1e-6) = 1e-6; 
         inv_Z = 1 ./ Z;
         
-        % 2. 计算投影坐标
+
         u_proj = X .* inv_Z;
         v_proj = Y .* inv_Z;
         
-        % 3. 计算残差 (Residual)
+
         res_u = u_proj - pts_obs(1, :);
         res_v = v_proj - pts_obs(2, :);
-        residual = [res_u'; res_v']; % 堆叠成 2N x 1 向量
+        residual = [res_u'; res_v']; 
         
-        % 检查收敛 (基于残差模长或更新量)
+
         if norm(residual) < 1e-6
             break; 
         end
-        
-        % 4. 构造雅可比矩阵 (Jacobian) - 2N x 6
-        % 采用左乘扰动模型: T_new = exp(xi^) * T_old
-        % 优化变量 xi = [delta_rho(位移), delta_phi(旋转)]
+
         
         u_invZ = u_proj .* inv_Z;
         v_invZ = v_proj .* inv_Z;
         
-        % J_u (针对 u 的偏导)
+
         % [1/Z, 0, -u/Z, -u*v, 1+u^2, -v]
         zeros_row = zeros(1, N);
         J_u_trans = [inv_Z; zeros_row; -u_invZ; -u_proj.*v_proj; 1+u_proj.^2; -v_proj];
         
-        % J_v (针对 v 的偏导)
+
         % [0, 1/Z, -v/Z, -1-v^2, u*v, u]
         J_v_trans = [zeros_row; inv_Z; -v_invZ; -1-v_proj.^2; u_proj.*v_proj; u_proj];
         
-        % 拼接 Jacobian (2N x 6)
+
         % J = [J_u_trans'; J_v_trans']; 
         
-        J = [J_u_trans, J_v_trans]'; % 这里转置变为 2N x 6
+        J = [J_u_trans, J_v_trans]'; 
         
-        % 5. 求解增量 (Normal Equation: J'J * delta = -J'r)
+
         delta = - (J \ residual);
         
         if norm(delta) < MIN_DELTA
             break;
         end
         
-        % 6. 更新位姿 (SE3 Update)
-        d_rho = delta(1:3); % 平移增量
-        d_phi = delta(4:6); % 旋转增量
+        % 6. SE3 Update)
+        d_rho = delta(1:3); 
+        d_phi = delta(4:6); 
         
-        % Rodrigues 公式计算旋转矩阵增量
+        % Rodrigues 
         theta = norm(d_phi);
         if theta < 1e-10
             dR = eye(3);
@@ -217,7 +206,7 @@ function [R_opt, t_opt] = pnp_refine_gn(R_init, t_init, y_norm, P_world)
             dR = eye(3) + sin(theta)*K + (1-cos(theta))*K^2;
         end
         
-        % 左乘更新: T_new = dT * T_old
+        %  T_new = dT * T_old
         % R_new = dR * R
         % t_new = dR * t + d_rho
         R = dR * R;
@@ -227,4 +216,5 @@ function [R_opt, t_opt] = pnp_refine_gn(R_init, t_init, y_norm, P_world)
     R_opt = R;
     t_opt = t;
 end
+
 
