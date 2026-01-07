@@ -1,38 +1,38 @@
 % Ablation2.m
-% 仿真实验：对比 BAPnP, EPnP (Standard), 和 EPnP (with Greedy Base Selection)
+% compare BAPnP, EPnP (Standard),  EPnP (with Greedy Base Selection)
 clear; clc; close all;
 
 addpath(genpath('EPnP')); 
 
-% ================= 参数设置 =================
-npts = 20;                  % 点的数量
-noise_levels = 0:0.5:5;     % 噪声水平 (像素)
-num_trials = 1000;           % 每个噪声水平的实验次数
 
-% 存储结果 (Rows: 1=BAPnP(Ours), 2=EPnP(Original), 3=EPnP+Greedy(Hybrid))
+npts = 20;                  
+noise_levels = 0:0.5:5;     
+num_trials = 1000;          
+
+
 avg_rot_err   = zeros(3, length(noise_levels)); 
 avg_trans_err = zeros(3, length(noise_levels));
 
-fprintf('开始位姿误差仿真 (N=%d)...\n', npts);
+fprintf(' (N=%d)...\n', npts);
 fprintf('-------------------------------------------------------------------------------------------------------\n');
 fprintf('| Noise | BAPnP Rot(°) | EPnP(Std) Rot(°) | EPnP+Greedy Rot(°) | BAPnP Tr(%%) | EPnP(Std) Tr(%%) | EPnP+Greedy Tr(%%) |\n');
 fprintf('-------------------------------------------------------------------------------------------------------\n');
 
-% ================= 主循环 =================
+
 for i = 1:length(noise_levels)
     noise = noise_levels(i);
     
-    % 累加器 (Col 1: Rot, Col 2: Trans)
+
     stats = zeros(3, 2); 
     counts = zeros(3, 1);
     
     for k = 1:num_trials
-        % 1. 生成数据
+
         try
             [pts3d, ~, normalized_pts2d_noisy, ~, R_true, t_true] = ...
                 generate_P6P_3D_to_2D_point_correspondences_noise(npts, noise);
         catch
-             error('请确保 generate_P6P_3D_to_2D_point_correspondences_noise 函数在路径中');
+             error('generate_P6P_3D_to_2D_point_correspondences_noise');
         end
         
         % -------------------------------------------------
@@ -67,10 +67,10 @@ for i = 1:length(noise_levels)
         % C. EPnP + Our Greedy Strategy (The New Curve)
         % -------------------------------------------------
         try
-            % 1. 使用我们的贪心策略选择4个基点
+
             cpts_greedy = select_greedy_bases(pts3d);
             
-            % 2. 将这些基点传入修改后的 EPnP 求解器
+
             [R_est, t_est] = run_epnp_with_cpts(normalized_pts2d_noisy, pts3d, cpts_greedy);
             
             [r_err, t_err] = calc_pose_error(R_est, t_est, R_true, t_true);
@@ -84,7 +84,7 @@ for i = 1:length(noise_levels)
         end
     end
     
-    % 计算平均值
+
     for m = 1:3
         if counts(m) > 0
             avg_rot_err(m, i)   = stats(m,1) / counts(m);
@@ -100,7 +100,7 @@ for i = 1:length(noise_levels)
 end
 fprintf('-------------------------------------------------------------------------------------------------------\n');
 
-% ================= 画图 1: 旋转误差 =================
+
 figure('Color', 'w', 'Position', [100, 400, 600, 400]);
 hold on;
 plot(noise_levels, avg_rot_err(1, :), '-ro', 'LineWidth', 2, 'MarkerFaceColor', 'r', 'DisplayName', 'BAPnP (Ours)');
@@ -112,7 +112,7 @@ title(['Rotation Error vs Noise (N=', num2str(npts), ')'], 'FontSize', 14);
 grid on; legend('Location', 'NorthWest');
 hold off;
 
-% ================= 画图 2: 平移误差 =================
+
 figure('Color', 'w', 'Position', [750, 400, 600, 400]);
 hold on;
 plot(noise_levels, avg_trans_err(1, :), '-ro', 'LineWidth', 2, 'MarkerFaceColor', 'r', 'DisplayName', 'BAPnP (Ours)');
@@ -129,41 +129,41 @@ hold off;
 % =========================================================================
 
 function [r_err_deg, t_err_percent] = calc_pose_error(R_est, t_est, R_true, t_true)
-    % 旋转误差
+   
     R_diff = R_true' * R_est;
     val = (trace(R_diff) - 1) / 2;
     if val > 1, val = 1; end
     if val < -1, val = -1; end
     r_err_deg = rad2deg(acos(val));
     
-    % 平移误差
+    
     t_diff = norm(t_est - t_true);
     t_norm = norm(t_true);
     if t_norm < 1e-6, t_err_percent = 0; else, t_err_percent = (t_diff / t_norm) * 100; end
 end
 
 function cpts = select_greedy_bases(pts3d)
-    % 论文 Section III-B 的贪心选点策略
+
     N = size(pts3d, 2);
     used_indices = false(1, N);
     
-    % 1. 均值中心
+
     centroid = mean(pts3d, 2);
     
-    % 2. P_b1: 距离重心最远
+
     dists = sum((pts3d - centroid).^2, 1);
     [~, idx1] = max(dists);
     Pb1 = pts3d(:, idx1);
     used_indices(idx1) = true;
     
-    % 3. P_b2: 距离 P_b1 最远
+
     dists = sum((pts3d - Pb1).^2, 1);
     dists(used_indices) = -1; 
     [~, idx2] = max(dists);
     Pb2 = pts3d(:, idx2);
     used_indices(idx2) = true;
     
-    % 4. P_b3: 到直线 P_b1-P_b2 距离最远
+
     u = Pb2 - Pb1; u = u / norm(u);
     max_dist = -1; idx3 = -1;
     for k = 1:N
@@ -176,7 +176,7 @@ function cpts = select_greedy_bases(pts3d)
     Pb3 = pts3d(:, idx3);
     used_indices(idx3) = true;
     
-    % 5. P_b4: 到平面 P_b1-P_b2-P_b3 距离最远
+
     v1_vec = Pb2 - Pb1; v2_vec = Pb3 - Pb1;
     n = cross(v1_vec, v2_vec); n = n / norm(n);
     max_dist = -1; idx4 = -1;
@@ -192,12 +192,12 @@ function cpts = select_greedy_bases(pts3d)
 end
 
 function [R, t] = run_epnp_with_cpts(pts2d, pts3d, cpts)
-    % 包装器：准备数据并调用修改后的 EPnP
+
     n = size(pts3d, 2);
-    % 转换为齐次坐标
+
     x3d_h = [pts3d', ones(n,1)];     % Nx4
     x2d_h = [pts2d', ones(n,1)];     % Nx3
-    A_eye = eye(3);                  % 假设 pts2d 已经是归一化坐标
+    A_eye = eye(3);                  
     
     [R, t, ~, ~] = efficient_pnp_custom_cpts(x3d_h, x2d_h, A_eye, cpts);
 end
@@ -237,7 +237,7 @@ function [R,T,Xc,best_solution]=efficient_pnp_custom_cpts(x3d_h,x2d_h,A,Cw_custo
     % 2. dim(ker)=2
     Km1=Km(:,end-1); Km2=Km(:,end);
     D=compute_constraint_distance_2param_6eq_3unk(Km1,Km2);
-    betas_=inv(D'*D)*D'*dsq; % 使用动态计算的 dsq
+    betas_=inv(D'*D)*D'*dsq; 
     beta1=sqrt(abs(betas_(1)));
     beta2=sqrt(abs(betas_(3)))*sign(betas_(2))*sign(betas_(1));
     X2=beta1*Km1+beta2*Km2;
@@ -296,6 +296,7 @@ function [R,T,Xc,best_solution]=efficient_pnp_custom_cpts(x3d_h,x2d_h,A,Cw_custo
     R=sol(best_solution).R;
     T=sol(best_solution).T;
 end
+
 
 
 
