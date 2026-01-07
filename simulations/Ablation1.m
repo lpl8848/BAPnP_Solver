@@ -1,7 +1,7 @@
 % =====================================================================
-% Ablation1
+% Comparison Experiment of Point Selection Strategies for Pure Linear Solutions in PnP
 % =====================================================================
-% =====================================================================
+
 
 clc; clear; close all;
 warning('off', 'all'); 
@@ -9,7 +9,7 @@ warning('off', 'all');
 
 n_list = [6, 10, 20, 50, 80, 100]; 
 noise_std = 2.0;                    
-n_trials = 2000; 
+n_trials = 1000; 
  
 methods = {'BPnP (Greedy)', 'BPnP-PCA', 'BPnP-Random', 'BPnP-Convex'};
 colors = {'r', 'b', 'g', 'c'};
@@ -25,15 +25,16 @@ fprintf('======================================================\n');
 
 for i = 1:length(n_list)
     npts = n_list(i);
-    fprintf(' N = %3d ... ', npts);
+    fprintf('N = %3d ... ', npts);
     
     err_stats = nan(n_trials, length(methods), 2); 
     
     for k = 1:n_trials
-   
+       
         [pts3d, pts2d_noisy, pts2d_norm, K, R_gt, t_gt] = generate_data(npts, noise_std);
         P_world = pts3d;
         y_norm = pts2d_norm; 
+        
         
         
         % --- 1. Greedy (Proposed) ---
@@ -53,7 +54,7 @@ for i = 1:length(n_list)
         [err_stats(k,4,1), err_stats(k,4,2)] = calc_error(R_gt, t_gt, R4, t4);
     end
     
-
+   
     for m = 1:length(methods)
         valid_data = squeeze(err_stats(:, m, :));
         valid_idx = ~isnan(valid_data(:,1));
@@ -68,7 +69,7 @@ for i = 1:length(n_list)
     fprintf('OK。\n');
 end
  
-
+% 绘图
 plot_results(n_list, res_rot_median, res_trans_median, methods, colors, markers, linewidths);
 
 
@@ -78,7 +79,7 @@ plot_results(n_list, res_rot_median, res_trans_median, methods, colors, markers,
 function [R, t] = pnp_linear_strategy_impl(y_norm, P_world, strategy)
     N = size(P_world, 2);
     
-
+    % --- 1.  ---
     cent_3d = mean(P_world, 2);
     P_centered = P_world - cent_3d;
     sq_dists = sum(P_centered.^2, 1);
@@ -87,11 +88,11 @@ function [R, t] = pnp_linear_strategy_impl(y_norm, P_world, strategy)
     scale_3d = sqrt(3) / rms_dist; 
     P_n = P_centered * scale_3d;
     
-
+    % --- 2.  ---
     base_idx = zeros(1, 4);
     
     if strcmp(strategy, 'greedy')
-
+        % BPnP
         [~, base_idx(1)] = max(sq_dists);
         p1 = P_n(:, base_idx(1));
         [~, base_idx(2)] = max(sum((P_n - p1).^2, 1));
@@ -104,7 +105,7 @@ function [R, t] = pnp_linear_strategy_impl(y_norm, P_world, strategy)
         [~, base_idx(4)] = max((n_plane' * vecs).^2);
         
     elseif strcmp(strategy, 'pca_real')
-
+        % PCA 
         [U, S, ~] = svd(P_n * P_n');
         sigmas = sqrt(diag(S) / N);
         targets = [mean(P_n,2), U(:,1)*sigmas(1)*2, U(:,2)*sigmas(2)*2, U(:,3)*sigmas(3)*2];
@@ -125,12 +126,12 @@ function [R, t] = pnp_linear_strategy_impl(y_norm, P_world, strategy)
         base_idx = randperm(N, 4);
     end
     
-
+    % --- 3.  ---
     perm = [base_idx, setdiff(1:N, base_idx)];
     P_n_perm = P_n(:, perm);
     y_norm_perm = y_norm(:, perm);
     
-
+    
     P1=P_n_perm(:,1); P2=P_n_perm(:,2); P3=P_n_perm(:,3); 
     C0 = (P1+P2+P3)/3;
     r1 = P1 - C0; n1 = 1/sqrt(sum(r1.^2)); r1 = r1 * n1;
@@ -155,7 +156,7 @@ function [R, t] = pnp_linear_strategy_impl(y_norm, P_world, strategy)
     Coeffs = B \ (W_prime(:, 5:end) - W_prime(:,4));
     alphas = Coeffs(1,:); betas = Coeffs(2,:); gammas = Coeffs(3,:); deltas = 1 - sum(Coeffs, 1);
     
-
+    
     y1=y_norm_perm(:,1); y2=y_norm_perm(:,2); y3=y_norm_perm(:,3); y4=y_norm_perm(:,4);
     y_others = y_norm_perm(:, 5:end);
     
@@ -177,7 +178,8 @@ function [R, t] = pnp_linear_strategy_impl(y_norm, P_world, strategy)
     Z_others = alphas*rho(1) + betas*rho(2) + gammas*rho(3) + deltas*rho(4);
     Z_all = [rho', Z_others];
     
-
+    % --- 4. (Procrustes) ---
+    
     P_cam_norm = [y_norm_perm(1,:).*Z_all; y_norm_perm(2,:).*Z_all; Z_all];
     cent_cam = mean(P_cam_norm, 2);
     sq_norm_cam = sum((P_cam_norm - cent_cam).^2, 'all');
@@ -203,7 +205,7 @@ function [R, t] = pnp_linear_strategy_impl(y_norm, P_world, strategy)
     if det(R) < 0, R = V * diag([1 1 -1]) * U'; end
     t_temp = mean(P_cam_ref_corr, 2);
     
-
+   
     t = t_temp / scale_3d - R * cent_3d;
 end
 
@@ -216,20 +218,48 @@ function [vol, base_idx] = strategy_convex_hull_optimal(P_n)
     catch
         base_idx = randperm(size(P_n,2), 4); vol=0; return;
     end
+    
     hull_indices = unique(K(:));
     M = numel(hull_indices);
+    
     if M < 4 
         base_idx = randperm(size(P_n,2), 4); vol=0; return;
     end
-    max_trials = 200; max_vol = 0; best_idx = hull_indices(1:4);
-    for k = 1:max_trials
-        if M == 4, idx = hull_indices; else, idx = hull_indices(randperm(M,4)); end
-        p1=P_n(:,idx(1)); p2=P_n(:,idx(2)); p3=P_n(:,idx(3)); p4=P_n(:,idx(4));
-        V = abs(det([p2-p1, p3-p1, p4-p1])) / 6;
-        if V > max_vol
-            max_vol = V; best_idx = idx;
+
+    num_combinations = nchoosek(M, 4);
+
+    if num_combinations <= 20000
+        combs = nchoosek(hull_indices, 4); 
+        num_iter = size(combs, 1);
+    
+        max_vol = -1;
+        best_idx = combs(1,:);
+        
+        for k = 1:num_iter
+            idx = combs(k, :);
+            p1=P_n(:,idx(1)); p2=P_n(:,idx(2)); p3=P_n(:,idx(3)); p4=P_n(:,idx(4));
+            
+            V = abs(det([p2-p1, p3-p1, p4-p1])) / 6;
+            if V > max_vol
+                max_vol = V;
+                best_idx = idx;
+            end
+        end
+        
+    else
+        
+        max_trials = 2000; 
+        max_vol = 0; best_idx = hull_indices(1:4);
+        for k = 1:max_trials
+            idx = hull_indices(randperm(M,4));
+            p1=P_n(:,idx(1)); p2=P_n(:,idx(2)); p3=P_n(:,idx(3)); p4=P_n(:,idx(4));
+            V = abs(det([p2-p1, p3-p1, p4-p1])) / 6;
+            if V > max_vol
+                max_vol = V; best_idx = idx;
+            end
         end
     end
+    
     base_idx = best_idx(:)'; vol = max_vol;
 end
 
@@ -296,4 +326,3 @@ function plot_results(n_list, res_rot, res_trans, methods, colors, markers, line
     title('Translation Error vs Number of Points');
 
 end
-
