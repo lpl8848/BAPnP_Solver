@@ -1,18 +1,15 @@
 function [R, t] = pnp_linear_only(y_norm, P_world)
-% PNP_LINEAR_ONLY 仅包含线性求解部分的 BAPnP 算法 (无迭代优化)
+% Input:
+%   y_norm:  2xN or 3xN 
+%   P_world: 3xN 
 %
-
-% 输入:
-%   y_norm:  2xN 或 3xN 归一化平面坐标 (x, y) 或 (x, y, 1)
-%   P_world: 3xN 世界坐标
-%
-% 输出:
-%   R, t:    线性解算的位姿
+% Output:
+%   R, t:    
 
 
     N = size(P_world, 2);
     
-    % 1. 3D 数据中心化与归一化 
+    % 1. 
     cent_3d = mean(P_world, 2);
     P_centered = P_world - cent_3d;
     sq_dists = sum(P_centered.^2, 1);
@@ -21,7 +18,7 @@ function [R, t] = pnp_linear_only(y_norm, P_world)
     scale_3d = 1.732050807568877 / rms_dist; 
     P_n = P_centered * scale_3d;
     
-    % 2. 极速基底选择
+    % 2. 
     base_idx = zeros(1, 4);
     [~, base_idx(1)] = max(sq_dists);
     p1 = P_n(:, base_idx(1));
@@ -48,16 +45,16 @@ function [R, t] = pnp_linear_only(y_norm, P_world)
     d2_plane = (nx*vecs(1,:) + ny*vecs(2,:) + nz*vecs(3,:)).^2;
     [~, base_idx(4)] = max(d2_plane);
     
-    % 重排列数据，让基底点在前
+
     perm = [base_idx, setdiff(1:N, base_idx)];
     P_n_perm = P_n(:, perm);
     y_norm_perm = y_norm(:, perm);
     
-    % 3. 线性求解控制点系数
+    % 3.
     P1=P_n_perm(:,1); P2=P_n_perm(:,2); P3=P_n_perm(:,3); 
     C0 = (P1+P2+P3)/3;
     
-    % 构造局部坐标系 
+
     r1 = P1 - C0; n1 = 1/sqrt(sum(r1.^2)); r1 = r1 * n1;
     v12 = P2 - C0; 
     r3 = [r1(2)*v12(3)-r1(3)*v12(2); r1(3)*v12(1)-r1(1)*v12(3); r1(1)*v12(2)-r1(2)*v12(1)];
@@ -71,7 +68,7 @@ function [R, t] = pnp_linear_only(y_norm, P_world)
     
     alphas = Coeffs(1,:); betas = Coeffs(2,:); gammas = Coeffs(3,:); deltas = 1 - sum(Coeffs, 1);
     
-    % 4. 构造 MX = 0 线性系统求解深度
+    % 4. 
     y1=y_norm_perm(:,1); y2=y_norm_perm(:,2); y3=y_norm_perm(:,3); y4=y_norm_perm(:,4);
     y_others = y_norm_perm(:, 5:end);
     
@@ -86,14 +83,14 @@ function [R, t] = pnp_linear_only(y_norm, P_world)
          reshape([deltas.*cp4_x; deltas.*cp4_y; deltas.*cp4_z], [], 1)];
      
     [~, ~, V] = svd(L, 'econ');
-    rho = V(:, end); % 最小特征向量
+    rho = V(:, end); 
     if sum(rho) < 0, rho = -rho; end
     if rho(1) < 1e-6, rho(1) = 1e-6; end
     
     Z_others = alphas*rho(1) + betas*rho(2) + gammas*rho(3) + deltas*rho(4);
     Z_all = [rho', Z_others];
     
-    % 5. 绝对定向 (Procrustes) - 恢复旋转和平移
+    % 5.
     P_cam_norm = [y_norm_perm(1,:).*Z_all; y_norm_perm(2,:).*Z_all; Z_all];
     cent_cam = mean(P_cam_norm, 2);
     sq_norm_cam = sum((P_cam_norm - cent_cam).^2, 'all');
@@ -108,7 +105,7 @@ function [R, t] = pnp_linear_only(y_norm, P_world)
     if det(R_est) < 0, R_est = V * diag([1 1 -1]) * U'; end
     t_est_norm = mean(P_cam_metric, 2);
     
-    % 6. 单步代数对齐 (One-Step Analytic Alignment)
+    % 6.  (One-Step Analytic Alignment)
     P_cam_ref = R_est * P_n_perm + t_est_norm;
     Z_ref = P_cam_ref(3, :);
     P_cam_ref_corr = [y_norm_perm(1,:).*Z_ref; y_norm_perm(2,:).*Z_ref; Z_ref];
@@ -119,9 +116,10 @@ function [R, t] = pnp_linear_only(y_norm, P_world)
     if det(R) < 0, R = V * diag([1 1 -1]) * U'; end
     t_temp = mean(P_cam_ref_corr, 2);
     
-    % 7. 还原尺度和中心
+    % 7. 
     t = t_temp / scale_3d - R * cent_3d;
     
 end
+
 
 
