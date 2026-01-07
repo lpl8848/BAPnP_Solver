@@ -16,7 +16,7 @@
 #include <opencv2/calib3d.hpp>
 #include <opencv2/core/eigen.hpp>
 
-// --- 引入算法头文件 ---
+
 #include "bapnp.h"
 #include "cpnp.h"
 #include "ops.h"
@@ -24,12 +24,12 @@
 using namespace std;
 using namespace Eigen;
 
-// --- 评测标准 ---
+
 const double THRESH_R_DEG = 3.0;
 const double THRESH_T_M   = 0.1;
-const int BENCHMARK_ITERATIONS = 1000; // 每帧重复运行次数，取中位数
+const int BENCHMARK_ITERATIONS = 1000; 
 
-// 辅助：计算旋转误差 (角度)
+
 double calc_rot_err(const Matrix3d& R1, const Matrix3d& R2) {
     double tr = (R1 * R2.transpose()).trace();
     double val = (tr - 1.0) / 2.0;
@@ -37,12 +37,12 @@ double calc_rot_err(const Matrix3d& R1, const Matrix3d& R2) {
     return acos(val) * 180.0 / M_PI;
 }
 
-// 辅助：计算平移误差 (模长)
+
 double calc_trans_err(const Vector3d& t1, const Vector3d& t2) {
     return (t1 - t2).norm();
 }
 
-// 结构体
+
 struct MethodStats {
     string name;
     double total_time = 0;
@@ -51,7 +51,7 @@ struct MethodStats {
     double sum_t_err = 0; 
 };
 
-// --- 核心计时函数：运行多次取中位数 ---
+
 template <typename Func>
 double measure_median_time(Func func) {
     std::vector<double> times;
@@ -64,10 +64,10 @@ double measure_median_time(Func func) {
         times.push_back(chrono::duration<double, milli>(t2 - t1).count());
     }
 
-    // 排序以取中位数
+
     std::sort(times.begin(), times.end());
 
-    // 返回中位数
+
     if (BENCHMARK_ITERATIONS % 2 == 0) {
         return (times[BENCHMARK_ITERATIONS / 2 - 1] + times[BENCHMARK_ITERATIONS / 2]) / 2.0;
     } else {
@@ -151,7 +151,7 @@ int main() {
         // ======================= 1. BAPnP (Ours) =======================
         Matrix3d R_bapnp; Vector3d t_bapnp;
         double time_bapnp = measure_median_time([&]() {
-            // 在 lambda 中调用求解器
+
             BAPnP::solve(pts_2d_norm, P_world, R_bapnp, t_bapnp);
         });
 
@@ -167,21 +167,21 @@ int main() {
         t_epnp_e << tvec_lin.at<double>(0), tvec_lin.at<double>(1), tvec_lin.at<double>(2);
 
         // ======================= 3. EPnP + LM (Refinement) =======================
-        // 注意：LM 需要初值。为了公平，每次运行前必须重置初值！
+
         cv::Mat rvec_ref, tvec_ref;
         
-        // 第一次运行仅仅为了获取结果用于计算误差，不计入时间统计
+
         rvec_ref = rvec_lin.clone();
         tvec_ref = tvec_lin.clone();
         cv::solvePnPRefineLM(cv_P3D, cv_P2D, K, dist, rvec_ref, tvec_ref);
 
 
         double time_only_lm = measure_median_time([&]() {
-            cv::Mat r_temp = rvec_lin.clone(); // 重置初值
+            cv::Mat r_temp = rvec_lin.clone();
             cv::Mat t_temp = tvec_lin.clone();
             cv::solvePnPRefineLM(cv_P3D, cv_P2D, K, dist, r_temp, t_temp);
         });
-        double time_epnp_lm = time_epnp + time_only_lm; // 总时间 = 线性 + 优化
+        double time_epnp_lm = time_epnp + time_only_lm; 
 
         cv::Mat R_cv_ref; cv::Rodrigues(rvec_ref, R_cv_ref);
         Matrix3d R_epnplm_e; Vector3d t_epnplm_e;
@@ -191,7 +191,7 @@ int main() {
         // ======================= 4. CPnP =======================
         Matrix3d R_cpnp_e = Matrix3d::Identity();
         Vector3d t_cpnp_e = Vector3d::Zero();
-        std::vector<double> cpnp_params = {1.0, 1.0, 0.0, 0.0}; // 移出 loop 避免重复构造
+        std::vector<double> cpnp_params = {1.0, 1.0, 0.0, 0.0};
         Vector4d q_out, q_gn;
         Vector3d t_out, t_gn;
 
@@ -199,7 +199,7 @@ int main() {
              pnpsolver::CPnP(cpnp_P2D_norm, cpnp_P3D, cpnp_params, q_out, t_out, q_gn, t_gn);
         });
 
-        // 提取最后一次运行的结果
+
         Quaterniond q(q_gn(0), q_gn(1), q_gn(2), q_gn(3));
         q.normalize();
         R_cpnp_e = q.toRotationMatrix();
@@ -249,7 +249,7 @@ int main() {
         if (total_frames % 50 == 0) cout << "Processed " << total_frames << " frames..." << endl;
     }
 
-    // --- 打印报表 ---
+
     cout << "\n==================================================================================" << endl;
     cout << "  TUM BENCHMARK FINAL RESULTS (" << total_frames << " frames, " << BENCHMARK_ITERATIONS << " runs/frame)" << endl;
     
