@@ -1,12 +1,4 @@
 
-% ============================================================
-% Paper-ready experiment (FINAL VERSION)
-% PnP robustness under near-coplanar and coplanar configurations
-%
-% Key point:
-%   Coplanar PnP is theoretically UNIQUE (homography-induced),
-%   therefore pose errors ARE WELL-DEFINED and ARE REPORTED.
-% ============================================================
 
 clc; clear; close all;
 
@@ -115,7 +107,7 @@ end
 %% ------------------ Output tables ------------------
 %% ------------------ Final Paper Plot (3 Separate Figures) ------------------
 
-% === 1. 公共绘图设置===
+
 
 
 line_styles = {'-', '--', '-.', ':', '-', '--', '-.', ':'};
@@ -152,12 +144,12 @@ ylabel('Rotation Error (deg)', 'FontName', font_name);
 
 ylim([0, 5]); 
 
-% 字体与图例
-set(gca, 'FontName', font_name, 'FontSize', font_size);
-legend('Location', 'northwest', 'Interpreter', 'none','FontSize',8); % 单独图例
-% title('Rotation Accuracy'); % 论文正式图通常不需要 title，标题写在 LaTeX caption 里
 
-% 保存
+set(gca, 'FontName', font_name, 'FontSize', font_size);
+legend('Location', 'northwest', 'Interpreter', 'none','FontSize',8); 
+% title('Rotation Accuracy'); 
+
+
 exportgraphics(gcf, 'Fig_Rot_Error.pdf', 'ContentType', 'vector');
 
 
@@ -165,7 +157,7 @@ exportgraphics(gcf, 'Fig_Rot_Error.pdf', 'ContentType', 'vector');
 %   Figure 2: Translation Error (Clipped)
 % =============================================================
 figure(2); clf;
-set(gcf, 'Color', 'w', 'Position', fig_pos + [50, -50, 0, 0]); % 稍微错开一点位置
+set(gcf, 'Color', 'w', 'Position', fig_pos + [50, -50, 0, 0]); 
 hold on; grid on; box on;
 
 for a = 1:n_algs
@@ -235,4 +227,5 @@ function [re, te] = pose_error(R_gt, t_gt, R_est, t_est)
     re = rad2deg(acos(v));
     te = norm(t_gt - t_est) / norm(t_gt) * 100;
 end
+
 
