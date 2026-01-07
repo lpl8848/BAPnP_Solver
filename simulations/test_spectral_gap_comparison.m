@@ -24,7 +24,7 @@ function test_spectral_gap_comparison()
     gap_epnp  = zeros(length(gammas), 1);
     gap_cpnp  = zeros(length(gammas), 1);
     
-    fprintf('运行谱隙分析 (BAPnP vs EPnP vs CPnP)...\n');
+    fprintf('(BAPnP vs EPnP vs CPnP)...\n');
     fprintf('%-10s | %-12s | %-12s | %-12s\n', 'Gamma', 'Gap(BAPnP)', 'Gap(EPnP)', 'Gap(CPnP)');
     fprintf('-------------------------------------------------------------\n');
 
@@ -112,55 +112,50 @@ function test_spectral_gap_comparison()
 end
 
 %% ========================================================================
-%  辅助函数: CPnP Matrix Construction (提取自 CPnP.m)
+%   CPnP Matrix Construction 
 % ========================================================================
 function pesi = get_cpnp_matrix(Psens_2D, s)
-    % Inputs:
-    %   Psens_2D: 2xN 归一化图像坐标 (u,v)
-    %   s:        3xN 3D 点坐标
-    %
-    % 这里的 fx,fy=1, u0,v0=0，因为我们传入的是归一化坐标
+
     
     N = size(s, 2);
     fx = 1; fy = 1; u0 = 0; v0 = 0;
     
-    % CPnP 内部逻辑
+   
     bar_s = sum(s, 2) / N; 
     
-    % 减去主点 (如果是0则不变)
+  
     Psens_2D = Psens_2D - [u0; v0];
     
-    % obs 向量化: [u1, v1, u2, v2, ...]'
+
     obs = Psens_2D(:);  
     
     pesi = zeros(2*N, 11); 
     
-    % 构建矩阵
+ 
     for k = 1:N
-        % 提取当前点
+     
         sk = s(:, k);
         uk = obs(2*k-1);
         vk = obs(2*k);
         
         diff_s = sk - bar_s;
         
-        % CPnP.m 中的 pesi 构建公式
-        % Row 2k-1 (对应 u)
+
         pesi(2*k-1, :) = [ ...
-            -diff_s(1)*uk, -diff_s(2)*uk, -diff_s(3)*uk, ... % 参数 1-3
-            fx*sk(1),      fx*sk(2),      fx*sk(3),      ... % 参数 4-6
+            -diff_s(1)*uk, -diff_s(2)*uk, -diff_s(3)*uk, ... 
+            fx*sk(1),      fx*sk(2),      fx*sk(3),      ... 
             fx,            0,             0,             0, 0];
         
-        % Row 2k (对应 v)
+
         pesi(2*k, :) = [ ...
-            -diff_s(1)*vk, -diff_s(2)*vk, -diff_s(3)*vk, ... % 参数 1-3
+            -diff_s(1)*vk, -diff_s(2)*vk, -diff_s(3)*vk, ...
             0,             0,             0,             ...
             0,             fy*sk(1),      fy*sk(2),      fy*sk(3), fy];
     end
 end
 
 %% ========================================================================
-%  辅助函数: BAPnP Matrix Construction
+%  BAPnP Matrix Construction
 % ========================================================================
 function L = get_bapnp_matrix(y_norm, P_n)
     N = size(P_n, 2);
@@ -208,7 +203,7 @@ function idx = greedy_selection(P)
 end
 
 %% ========================================================================
-%  辅助函数: EPnP Matrix Construction
+%  EPnP Matrix Construction
 % ========================================================================
 function M = get_epnp_matrix(y_homo, P_c)
     N = size(P_c, 2);
