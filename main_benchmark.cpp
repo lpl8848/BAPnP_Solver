@@ -72,7 +72,6 @@ void eigen2cv(const MatrixXd& P_world, const MatrixXd& y_norm,
 
 
 int main() {
-    // 设置输出文件
     ofstream outFile("runtime_benchmark_result.txt");
     if (!outFile.is_open()) {
         cerr << "Error: Could not open output file." << endl;
@@ -116,7 +115,6 @@ int main() {
 
 
         for (int k = 0; k < trials; ++k) {
-            // 1. 数据生成 (Data Generation)
             MatrixXd P_world = MatrixXd::Random(3, n) * 10.0; 
             P_world.row(2).array() += 20.0; 
             
