@@ -25,14 +25,14 @@
 using namespace std;
 using namespace Eigen;
 
-// --- 配置参数 ---
+
 const double FILTER_ERR_THRESH = 1.0; 
 const int MIN_INLIERS = 6;            
 const double THRESH_R = 2.0;          
 const double THRESH_T = 1.0;          
 const int BENCHMARK_ITERATIONS = 1000; 
 
-// --- 数据结构 ---
+
 struct Camera {
     int id;
     int width, height;
@@ -69,7 +69,7 @@ struct Stats {
     }
 };
 
-// --- 核心计时函数 ---
+
 template <typename Func>
 double measure_median_time(Func func) {
     std::vector<double> times;
@@ -95,7 +95,7 @@ Matrix3d quat2rot(double qw, double qx, double qy, double qz) {
     return q.toRotationMatrix();
 }
 
-// --- 读取 COLMAP 数据 ---
+
 bool read_colmap(const string& base_path,
                  map<int, Point3D>& points3d,
                  map<int, Camera>& cameras,
@@ -170,14 +170,14 @@ void update_stats(Stats& s, double t_ms, double r_err, double t_err) {
     }
 }
 
-// --- 运行一次完整的稀疏测试 ---
+
 void run_benchmark_on_sparse(
     const vector<Image>& images, 
     map<int, Point3D>& points3d, 
     map<int, Camera>& cameras,
     int target_N) 
 {
-    // 初始化统计
+
     Stats s_bapnp   = {"BAPnP"};
     Stats s_epnp    = {"EPnP"};
     Stats s_epnp_lm = {"EPnP+LM"};
@@ -187,7 +187,7 @@ void run_benchmark_on_sparse(
     cout << "------------------------------------------------------------" << endl;
     cout << "Running Sparse Benchmark with N = " << target_N << " points per frame" << endl;
 
-    // 固定随机种子，保证每次运行 N=20/50/100 选取的点是一样的，公平对比
+
     std::mt19937 rng(12345); 
 
     int valid_frames = 0;
@@ -200,15 +200,15 @@ void run_benchmark_on_sparse(
         valid_frames++;
         Matrix3d K = cameras[img.camera_id].K;
 
-        // --- 1. 随机抽样 (Random Subsampling) ---
-        vector<int> indices(total_points);
-        std::iota(indices.begin(), indices.end(), 0); // 生成 0, 1, 2...
-        std::shuffle(indices.begin(), indices.end(), rng); // 打乱
 
-        // 取前 target_N 个索引
+        vector<int> indices(total_points);
+        std::iota(indices.begin(), indices.end(), 0);
+        std::shuffle(indices.begin(), indices.end(), rng); 
+
+
         vector<int> selected_indices(indices.begin(), indices.begin() + target_N);
 
-        // --- 2. 构建数据容器 ---
+
         int N = target_N;
         MatrixXd P_world(3, N);
         MatrixXd pts_norm(3, N);
@@ -220,7 +220,7 @@ void run_benchmark_on_sparse(
         vector<Vector2d> cpnp_P2D_norm; 
 
         for (int i = 0; i < N; ++i) {
-            int idx = selected_indices[i]; // 使用随机抽取的索引
+            int idx = selected_indices[i]; 
             
             Vector3d Xw = points3d[img.p3d_ids[idx]].xyz;
             Vector2d uv = img.pts2d[idx];
@@ -255,7 +255,7 @@ void run_benchmark_on_sparse(
         double t_epnp_lin = measure_median_time([&]() {
             cv::solvePnP(cv_P3D, cv_P2D, cv_K, dist, rvec, tvec, false, cv::SOLVEPNP_EPNP);
         });
-        // 统计 Linear
+
         cv::Mat R_cv; cv::Rodrigues(rvec, R_cv);
         Matrix3d R_epnp; cv::cv2eigen(R_cv, R_epnp);
         Vector3d t_epnp(tvec.at<double>(0), tvec.at<double>(1), tvec.at<double>(2));
@@ -266,7 +266,7 @@ void run_benchmark_on_sparse(
         // --- C. EPnP + LM ---
         cv::Mat rvec_ref = rvec.clone();
         cv::Mat tvec_ref = tvec.clone();
-        // 测速 Refine
+
         double t_refine = measure_median_time([&]() {
             cv::Mat r_tmp = rvec.clone(); 
             cv::Mat t_tmp = tvec.clone();
@@ -356,11 +356,8 @@ int main(int argc, char** argv) {
     cout << "  Starting SPARSE Benchmark on South Building" << endl;
     cout << "==============================================" << endl;
 
-    // 定义要测试的点数列表
-    // N=20: 极度稀疏，接近最小集合，测试极限鲁棒性
-    // N=50: 典型 VIO 跟踪点数
-    // N=100/200: 标准特征跟踪
-    vector<int> test_Ns = {20, 50, 100, 200};
+
+    vector<int> test_Ns = {20, 50, 100};
 
     for (int N : test_Ns) {
         run_benchmark_on_sparse(images, points3d, cameras, N);
