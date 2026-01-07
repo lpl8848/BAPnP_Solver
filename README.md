@@ -14,6 +14,7 @@ To run the comparisons, you need to download the baseline algorithms and add the
 
 1. **MLPnP and other algorithms**: Download from [urbste/MLPnP_matlab_toolbox](https://github.com/urbste/MLPnP_matlab_toolbox).
 2. **CPnP**: Download from [LIAS-CUHKSZ/CPnP-A-Consistent-PnP-Solver](https://github.com/LIAS-CUHKSZ/CPnP-A-Consistent-PnP-Solver).
+3. **SRPnP**: Download from (https://github.com/pingwangsky/PnP_tool)
 
 **Setup:**
 Unzip these toolboxes and add their folders (and subfolders) to your MATLAB working path before running the experiments.
