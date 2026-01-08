@@ -22,7 +22,7 @@ focal       = 800;
 pixel_noise = 1.0;
 
 % from non-planar -> strictly planar
-z_spread_levels = [1e-1, 1e-2, 1e-3,1e-5, 1e-7, 1e-10, 1e-12];
+z_spread_levels = [1e-1, 1e-2, 1e-3,1e-5, 1e-7, 1e-10, 1e-12,0];
 
 % success criterion (numerical consistency)
 rot_thresh   = 2;    % degrees
@@ -227,5 +227,6 @@ function [re, te] = pose_error(R_gt, t_gt, R_est, t_est)
     re = rad2deg(acos(v));
     te = norm(t_gt - t_est) / norm(t_gt) * 100;
 end
+
 
 
