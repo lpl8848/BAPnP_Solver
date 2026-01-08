@@ -11,6 +11,7 @@ algorithms = {
     'SRPnP-GN',        @run_srpnp;
     'MLPnP',      @run_mlpnp;
     'CPnP-GN',      @run_cpnp;
+    'EPnP-GN-Greedy',      @run_epnp_with_cpts;
 };
 n_algs = size(algorithms,1);
 
@@ -227,6 +228,7 @@ function [re, te] = pose_error(R_gt, t_gt, R_est, t_est)
     re = rad2deg(acos(v));
     te = norm(t_gt - t_est) / norm(t_gt) * 100;
 end
+
 
 
 
