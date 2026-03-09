@@ -1,4 +1,9 @@
 
+% ============================================================
+% Paper-ready experiment
+% PnP robustness under near-coplanar and coplanar configurations
+%
+% ============================================================
 
 clc; clear; close all;
 
@@ -12,12 +17,13 @@ algorithms = {
     'MLPnP',      @run_mlpnp;
     'CPnP-GN',      @run_cpnp;
     'EPnP-GN-Greedy',      @run_epnp_with_cpts;
+    'SQPnP',      @sqpnp;
 };
 n_algs = size(algorithms,1);
 
 %% ------------------ Parameters ------------------
 n_points   = 20;
-n_trials   = 1000;
+n_trials   = 500;
 
 focal       = 800;
 pixel_noise = 1.0;
@@ -74,9 +80,17 @@ for i = 1:n_levels
         y  = [y; ones(1,n_points)];
 
         %% ---------- Run solvers ----------
+        %% ---------- Run solvers ----------
         for a = 1:n_algs
             try
-                [R_est, t_est] = algorithms{a,2}(y, Pw);
+                % 【核心修改】：检测到 BAPnP-GN 且处于严格平面 (z_spread == 0) 时，切换平面分支
+                if strcmp(algorithms{a,1}, 'BAPnP-GN') && z_spread == 0
+                    [R_est, t_est] = BAPnP_Coplanar(y, Pw);
+                else
+                    % 其他算法或非严格平面情况，走常规分支
+                    [R_est, t_est] = algorithms{a,2}(y, Pw);
+                end
+                
                 [re, te] = pose_error(R_gt, t_gt, R_est, t_est);
 
                 rot_err(k,a)   = re;
@@ -88,39 +102,43 @@ for i = 1:n_levels
         end
     end
 
-    %% ---------- Aggregate statistics ----------
+%% ---------- Aggregate statistics ----------
     Planarity(i) = median(rho_vals);
 
     for a = 1:n_algs
-        valid = ~isnan(rot_err(:,a));
-
-        % IMPORTANT:
-        % Coplanar case IS INCLUDED.
-        % Pose error is meaningful because coplanar PnP is unique.
-        MedianRot(i,a)   = median(rot_err(valid,a));
-        MedianTrans(i,a) = median(trans_err(valid,a));
-        SuccessRate(i,a) = mean(success(valid,a)) * 100;
+        % --- 1. 计算误差的中位数 (仅针对有效解) ---
+        valid = ~isnan(rot_err(:,a)); 
+        
+        if any(valid)
+            MedianRot(i,a)   = median(rot_err(valid,a));
+            MedianTrans(i,a) = median(trans_err(valid,a));
+        else
+            
+            MedianRot(i,a)   = NaN; 
+            MedianTrans(i,a) = NaN;
+        end
+        
+        SuccessRate(i,a) = mean(success(:,a)) * 100; 
     end
 
     fprintf('Level %d/%d done (z = %.1e)\n', i, n_levels, z_spread);
 end
 
 %% ------------------ Output tables ------------------
-%% ------------------ Final Paper Plot (3 Separate Figures) ------------------
 
+% === 1. 公共绘图设置 (统一风格) ===
+fig_pos = [200, 200, 500, 400]; 
 
-
-
-line_styles = {'-', '--', '-.', ':', '-', '--', '-.', ':'};
+line_styles = {'-', '--', '-.', ':', '-', '--', '-.', ':','-'};
 colors = lines(n_algs); 
-colors(1,:) = [0.85, 0.33, 0.1];
-markers     = {'o', 's', '^', 'd', 'v', '>', '<', 'p'};
+colors(1,:) = [0.85, 0.33, 0.1]; % Proposed 橙红色
+markers     = {'o', 's', '^', 'd', 'v', '>', '<', 'p','*'};
 line_width = 1.5;
-marker_size = 8;    
+marker_size = 8;     % 独立图可以把点画大一点，更清楚
 font_name = 'Times New Roman';
-font_size = 14;     
+font_size = 14;      % 独立图字号可以大一点
 
-
+% 构造 X 轴标签 (等间距非连续)
 x_labels = arrayfun(@(x) sprintf('10^{%d}', round(log10(x))), z_spread_levels, 'UniformOutput', false);
 x_idx = 1:n_levels; 
 
@@ -145,12 +163,12 @@ ylabel('Rotation Error (deg)', 'FontName', font_name);
 
 ylim([0, 5]); 
 
-
+% 字体与图例
 set(gca, 'FontName', font_name, 'FontSize', font_size);
-legend('Location', 'northwest', 'Interpreter', 'none','FontSize',8); 
-% title('Rotation Accuracy'); 
+legend('Location', 'northwest', 'Interpreter', 'none','FontSize',8); % 单独图例
+% title('Rotation Accuracy'); % 论文正式图通常不需要 title，标题写在 LaTeX caption 里
 
-
+% 保存
 exportgraphics(gcf, 'Fig_Rot_Error.pdf', 'ContentType', 'vector');
 
 
@@ -158,7 +176,7 @@ exportgraphics(gcf, 'Fig_Rot_Error.pdf', 'ContentType', 'vector');
 %   Figure 2: Translation Error (Clipped)
 % =============================================================
 figure(2); clf;
-set(gcf, 'Color', 'w', 'Position', fig_pos + [50, -50, 0, 0]); 
+set(gcf, 'Color', 'w', 'Position', fig_pos + [50, -50, 0, 0]); % 稍微错开一点位置
 hold on; grid on; box on;
 
 for a = 1:n_algs
@@ -171,7 +189,7 @@ set(gca, 'XTick', x_idx, 'XTickLabel', x_labels);
 xlabel('Degree of Coplanarity', 'FontName', font_name);
 ylabel('Translation Error (%)', 'FontName', font_name);
 
-
+% 【核心】截断 Y 轴
 ylim([0, 10]); 
 
 set(gca, 'FontName', font_name, 'FontSize', font_size);
@@ -198,11 +216,11 @@ set(gca, 'XTick', x_idx, 'XTickLabel', x_labels);
 xlabel('Degree of Coplanarity', 'FontName', font_name);
 ylabel('Success Rate (%)', 'FontName', font_name);
 
-
+% 成功率固定范围
 ylim([-2, 102]); 
 
 set(gca, 'FontName', font_name, 'FontSize', font_size);
-
+% 成功率图的图例通常放左下角（因为曲线通常在上方）
 legend('Location', 'northwest', 'Interpreter', 'none','FontSize',8);
 % title('Success Rate');
 
@@ -228,7 +246,3 @@ function [re, te] = pose_error(R_gt, t_gt, R_est, t_est)
     re = rad2deg(acos(v));
     te = norm(t_gt - t_est) / norm(t_gt) * 100;
 end
-
-
-
-
