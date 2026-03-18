@@ -23,6 +23,7 @@ Unzip these toolboxes and add their folders (and subfolders) to your MATLAB work
 
 We provide unified interfaces for different solvers:
 * `BAPnP.m`: Our proposed method (Linear Initialization + Gauss-Newton Refinement).
+* `BAPnP_Coplanar.m`: Our proposed method
 * `pnp_linear_only.m`: Our proposed method (Linear Initialization only).
 * `run_cpnp.m`: Wrapper for the CPnP solver.
 * *(Other wrappers included in the folder)*
