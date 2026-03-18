@@ -11,14 +11,14 @@ N=1000  | BAPnP: 0.1317 | EPnP(Raw): 0.1876 | CPnP: 0.7595 | SQPnP(Raw): 0.0740
 
 >>> Results for N = 20 <<<
 BAPnP      | Succ: 97.7 % | Time: 0.0041  ms | Err: 0.290 deg / 0.013 m
-EPnP(Raw)  | Succ: 89.8 % | Time: 0.0368  ms | Err: 0.325 deg / 0.016 m
+EPnP       | Succ: 89.8 % | Time: 0.0368  ms | Err: 0.325 deg / 0.016 m
 CPnP       | Succ: 56.2 % | Time: 0.0267  ms | Err: 0.561 deg / 0.030 m
 SQPnP      | Succ: 97.7 % | Time: 0.0198  ms | Err: 0.289 deg / 0.013 m
 
 
 >>> Results for N = 100 <<<
 BAPnP      | Succ: 99.2 % | Time: 0.0107  ms | Err: 0.258 deg / 0.012 m
-EPnP(Raw)  | Succ: 93.8 % | Time: 0.0476  ms | Err: 0.324 deg / 0.014 m
+EPnP       | Succ: 93.8 % | Time: 0.0476  ms | Err: 0.324 deg / 0.014 m
 CPnP       | Succ: 93.8 % | Time: 0.0584  ms | Err: 0.265 deg / 0.013 m
 SQPnP      | Succ: 99.2 % | Time: 0.0118  ms | Err: 0.260 deg / 0.012 m
 
@@ -28,7 +28,7 @@ SQPnP      | Succ: 99.2 % | Time: 0.0118  ms | Err: 0.260 deg / 0.012 m
   Thresh: 3.0 deg, 0.1 m
 ==================================================================================
 BAPnP      | Time: 0.037 ms | Succ: 77.1% | Err(R/t): 1.552 deg / 0.037 m
-EPnP(Raw)  | Time: 0.107 ms | Succ: 76.6% | Err(R/t): 1.523 deg / 0.040 m
+EPnP       | Time: 0.107 ms | Succ: 76.6% | Err(R/t): 1.523 deg / 0.040 m
 CPnP       | Time: 0.249 ms | Succ: 72.1% | Err(R/t): 1.538 deg / 0.039 m
 SQPnP      | Time: 0.031 ms | Succ: 68.2% | Err(R/t): 1.522 deg / 0.038 m
 
