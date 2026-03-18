@@ -74,6 +74,7 @@ Ensure you have a C++ compiler (supports C++11 or higher) and CMake installed.
 **Build:**
 
 ```bash
+mkdir build
 cd build
 # Assuming CMake is used to generate the Makefile
 cmake .. 
