@@ -75,7 +75,7 @@ function [R, t] = pnp_linear_coplanar_core(y_norm, P_world)
     t = t_est_norm / scale_3d - R * cent_3d;
 end
 
-% --- Gauss-Newton 优化器 ---
+% --- Gauss-Newton ---
 function [R_opt, t_opt] = pnp_refine_gn(R_init, t_init, y_norm, P_world)
     MAX_ITER = 10; MIN_DELTA = 1e-6; 
     pts_obs = y_norm(1:2, :);
