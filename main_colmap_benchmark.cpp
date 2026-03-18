@@ -22,7 +22,7 @@
 using namespace std;
 using namespace Eigen;
 
-// --- 配置参数 ---
+
 const double FILTER_ERR_THRESH = 1.0; 
 const int MIN_INLIERS = 6;            
 const double THRESH_R = 2.0;          
@@ -45,7 +45,7 @@ struct Stats {
     void reset() { success = 0; total = 0; time_sum = 0; r_err_sum = 0; t_err_sum = 0; }
 };
 
-// --- 误差计算函数 ---
+
 double calc_rot_err(const Matrix3d& R1, const Matrix3d& R2) {
     double tr = (R1 * R2.transpose()).trace();
     double val = (tr - 1.0) / 2.0;
@@ -166,20 +166,19 @@ void run_benchmark_on_sparse(const vector<Image>& images, map<int, Point3D>& poi
         Matrix3d K_inv = K.inverse(); 
         double fx = K(0,0), fy = K(1,1), cx = K(0,2), cy = K(1,2);
 
-        // ================== 共面点提取逻辑 ==================
-        // 1. 提取当前帧的所有 3D 点
+
         vector<Vector3d> frame_pts3d(total_points);
         for (int i = 0; i < total_points; ++i) {
             frame_pts3d[i] = points3d[img.p3d_ids[i]].xyz;
         }
 
-        // 2. 运行简单的 RANSAC 寻找主导平面
+
         int ransac_iters = 50;
         std::uniform_int_distribution<int> dist(0, total_points - 1);
         Vector3d best_normal = Vector3d::UnitZ();
         Vector3d best_p0 = Vector3d::Zero();
         int max_inliers = 0;
-        double plane_thresh = 0.5; // COLMAP 尺度的容差阈值
+        double plane_thresh = 0.5; 
 
         for (int it = 0; it < ransac_iters; ++it) {
             int i1 = dist(rng), i2 = dist(rng), i3 = dist(rng);
@@ -205,7 +204,7 @@ void run_benchmark_on_sparse(const vector<Image>& images, map<int, Point3D>& poi
             }
         }
 
-        // 3. 计算所有点到这个最佳平面的距离，并按距离从小到大排序
+
         vector<pair<double, int>> dist_idx_pairs;
         dist_idx_pairs.reserve(total_points);
         for (int i = 0; i < total_points; ++i) {
@@ -214,10 +213,9 @@ void run_benchmark_on_sparse(const vector<Image>& images, map<int, Point3D>& poi
         }
         std::sort(dist_idx_pairs.begin(), dist_idx_pairs.end());
 
-        // 4. 构建“接近共面”的候选池（取距离最近的 1.5 倍 target_N 个点）
-        // 然后从中打乱抽取 target_N 个，保证既共面又有一定的空间散布
+
         int pool_size = std::min(total_points, static_cast<int>(target_N * 1.5));
-        if (pool_size < target_N) continue; // 保险起见
+        if (pool_size < target_N) continue; 
 
         vector<int> coplanar_pool;
         coplanar_pool.reserve(pool_size);
@@ -254,7 +252,7 @@ void run_benchmark_on_sparse(const vector<Image>& images, map<int, Point3D>& poi
         });
         update_stats(s_bapnp, time_bapnp, calc_rot_err(img.R_gt, R_est_bapnp), calc_trans_err(img.t_gt, t_est_bapnp));
 
-        // --- B. EPnP (Raw) ---
+        // --- B. EPnP---
         epnp PnP;
         PnP.set_internal_parameters(cx, cy, fx, fy);
         PnP.set_maximum_number_of_correspondences(N);
@@ -295,7 +293,7 @@ void run_benchmark_on_sparse(const vector<Image>& images, map<int, Point3D>& poi
         });
         update_stats(s_cpnp, time_cpnp, calc_rot_err(img.R_gt, R_cpnp), calc_trans_err(img.t_gt, t_cpnp));
 
-        // --- D. SQPnP (Raw) ---
+        // --- D. SQPnP---
         Matrix3d R_sq = Matrix3d::Identity(); Vector3d t_sq = Vector3d::Zero();
         double time_sqpnp = measure_median_time([&]() {
             vector<Vector2d> sq_p2d_norm(N);
