@@ -1,13 +1,13 @@
 --- Starting Time Benchmark ---10^5
-N=6     | BAPnP: 0.0039 | EPnP(Raw): 0.0381 | CPnP: 0.0234 | SQPnP(Raw): 0.0266
-N=10    | BAPnP: 0.0044 | EPnP(Raw): 0.0381 | CPnP: 0.0259 | SQPnP(Raw): 0.0265
-N=20    | BAPnP: 0.0059 | EPnP(Raw): 0.0411 | CPnP: 0.0337 | SQPnP(Raw): 0.0308
-N=50    | BAPnP: 0.0103 | EPnP(Raw): 0.0467 | CPnP: 0.0553 | SQPnP(Raw): 0.0399
-N=100   | BAPnP: 0.0166 | EPnP(Raw): 0.0509 | CPnP: 0.0834 | SQPnP(Raw): 0.0425
-N=200   | BAPnP: 0.0299 | EPnP(Raw): 0.0657 | CPnP: 0.1853 | SQPnP(Raw): 0.0489
-N=400   | BAPnP: 0.0556 | EPnP(Raw): 0.0956 | CPnP: 0.3478 | SQPnP(Raw): 0.0574
-N=500   | BAPnP: 0.0678 | EPnP(Raw): 0.1092 | CPnP: 0.4508 | SQPnP(Raw): 0.0619
-N=1000  | BAPnP: 0.1317 | EPnP(Raw): 0.1876 | CPnP: 0.7595 | SQPnP(Raw): 0.0740
+N=6     | BAPnP: 0.0039 | EPnP: 0.0381 | CPnP: 0.0234 | SQPnP: 0.0266
+N=10    | BAPnP: 0.0044 | EPnP: 0.0381 | CPnP: 0.0259 | SQPnP: 0.0265
+N=20    | BAPnP: 0.0059 | EPnP: 0.0411 | CPnP: 0.0337 | SQPnP: 0.0308
+N=50    | BAPnP: 0.0103 | EPnP: 0.0467 | CPnP: 0.0553 | SQPnP: 0.0399
+N=100   | BAPnP: 0.0166 | EPnP: 0.0509 | CPnP: 0.0834 | SQPnP: 0.0425
+N=200   | BAPnP: 0.0299 | EPnP: 0.0657 | CPnP: 0.1853 | SQPnP: 0.0489
+N=400   | BAPnP: 0.0556 | EPnP: 0.0956 | CPnP: 0.3478 | SQPnP: 0.0574
+N=500   | BAPnP: 0.0678 | EPnP: 0.1092 | CPnP: 0.4508 | SQPnP: 0.0619
+N=1000  | BAPnP: 0.1317 | EPnP: 0.1876 | CPnP: 0.7595 | SQPnP: 0.0740
 
 >>> Results for N = 20 <<<
 BAPnP      | Succ: 97.7 % | Time: 0.0041  ms | Err: 0.290 deg / 0.013 m
