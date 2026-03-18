@@ -126,7 +126,7 @@ int main() {
             BAPnP::solve(pts_2d_norm, P_world, R_est_bapnp, t_est_bapnp);
         });
 
-        // ======================= 2. EPnP (Raw) =======================
+        // ======================= 2. EPnP =======================
         epnp PnP;
         PnP.set_internal_parameters(cx, cy, fx, fy);
         PnP.set_maximum_number_of_correspondences(n_points);
@@ -159,7 +159,7 @@ int main() {
         R_cpnp_e = q_c.toRotationMatrix();
         t_cpnp_e = t_gn;
 
-        // ======================= 4. SQPnP (Raw) =======================
+        // ======================= 4. SQPnP  =======================
         Matrix3d R_sqpnp_e = Matrix3d::Identity();
         Vector3d t_sqpnp_e = Vector3d::Zero();
         double time_sqpnp = measure_median_time([&]() {
@@ -171,7 +171,7 @@ int main() {
             }
         });
 
-        // --- 验证和统计 ---
+        
         auto check = [&](MethodStats& s, double t, const Matrix3d& R, const Vector3d& t_vec) {
             double r_err = calc_rot_err(R_gt, R);
             double t_err = calc_trans_err(t_gt, t_vec);
@@ -198,7 +198,7 @@ int main() {
         if (total_frames % 50 == 0) cout << "Processed " << total_frames << " frames..." << endl;
     }
 
-    // --- 打印报表 ---
+   
     cout << "\n==================================================================================" << endl;
     cout << "  TUM BENCHMARK FINAL RESULTS (" << total_frames << " frames, " << BENCHMARK_ITERATIONS << " runs/frame)" << endl;
     
