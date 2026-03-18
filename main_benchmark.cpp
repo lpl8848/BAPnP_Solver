@@ -16,7 +16,7 @@
 using namespace std;
 using namespace Eigen;
 
-// --- 核心计时函数 ---
+
 template <typename Func>
 double measure_median_time(Func func) {
     int iterations = 100; 
@@ -86,7 +86,7 @@ int main() {
                 BAPnP::solve(y_norm, P_world, R_est_bapnp, t_est_bapnp);
             });
 
-            // 2. EPnP (Raw C++ 包含 GN)
+            // 2. EPnP 
             epnp PnP;
             PnP.set_internal_parameters(cx_sim, cy_sim, f_sim, f_sim);
             PnP.set_maximum_number_of_correspondences(n);
@@ -104,7 +104,7 @@ int main() {
                 pnpsolver::CPnP(cpnp_P2D_norm, cpnp_P3D, params, q_out, t_out, q_gn, t_gn);
             });
 
-            // 4. SQPnP (Raw C++)
+            // 4. SQPnP 
             t_sqpnp += measure_median_time([&]() {
                 sqpnp::PnPSolver solver(cpnp_P3D, cpnp_P2D_norm);
                 if (solver.IsValid()) solver.Solve();
