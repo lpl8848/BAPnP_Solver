@@ -9,7 +9,7 @@ clc; clear; close all;
 
 %% ------------------ Algorithm list ------------------
 algorithms = {
-    'BAPnP-GN',   @BAPnP;
+    'BAPnP-GN',   @BAPnP_new;
     'EPnP-GN', @run_epnp_guass; 
     'OPnP',       @run_opnp;
     'RPnP',       @run_rpnp;
@@ -23,7 +23,7 @@ n_algs = size(algorithms,1);
 
 %% ------------------ Parameters ------------------
 n_points   = 20;
-n_trials   = 500;
+n_trials   = 100;
 
 focal       = 800;
 pixel_noise = 1.0;
@@ -79,17 +79,13 @@ for i = 1:n_levels
         y  = y + (pixel_noise / focal) * randn(2,n_points);
         y  = [y; ones(1,n_points)];
 
-        %% ---------- Run solvers ----------
+
         %% ---------- Run solvers ----------
         for a = 1:n_algs
             try
-                % 【核心修改】：检测到 BAPnP-GN 且处于严格平面 (z_spread == 0) 时，切换平面分支
-                if strcmp(algorithms{a,1}, 'BAPnP-GN') && z_spread == 0
-                    [R_est, t_est] = BAPnP_Coplanar(y, Pw);
-                else
-                    % 其他算法或非严格平面情况，走常规分支
+               
                     [R_est, t_est] = algorithms{a,2}(y, Pw);
-                end
+                
                 
                 [re, te] = pose_error(R_gt, t_gt, R_est, t_est);
 
@@ -106,7 +102,7 @@ for i = 1:n_levels
     Planarity(i) = median(rho_vals);
 
     for a = 1:n_algs
-        % --- 1. 计算误差的中位数 (仅针对有效解) ---
+        
         valid = ~isnan(rot_err(:,a)); 
         
         if any(valid)
@@ -126,24 +122,23 @@ end
 
 %% ------------------ Output tables ------------------
 
-% === 1. 公共绘图设置 (统一风格) ===
 fig_pos = [200, 200, 500, 400]; 
 
 line_styles = {'-', '--', '-.', ':', '-', '--', '-.', ':','-'};
 colors = lines(n_algs); 
-colors(1,:) = [0.85, 0.33, 0.1]; % Proposed 橙红色
+colors(1,:) = [0.85, 0.33, 0.1]; 
 markers     = {'o', 's', '^', 'd', 'v', '>', '<', 'p','*'};
 line_width = 1.5;
-marker_size = 8;     % 独立图可以把点画大一点，更清楚
+marker_size = 8;     
 font_name = 'Times New Roman';
-font_size = 14;      % 独立图字号可以大一点
+font_size = 14;      
 
-% 构造 X 轴标签 (等间距非连续)
+
 x_labels = arrayfun(@(x) sprintf('10^{%d}', round(log10(x))), z_spread_levels, 'UniformOutput', false);
 x_idx = 1:n_levels; 
 
 % =============================================================
-%   Figure 1: Rotation Error (Clipped)
+%   Figure 1: Rotation Error 
 % =============================================================
 figure(1); clf; 
 set(gcf, 'Color', 'w', 'Position', fig_pos);
@@ -155,7 +150,7 @@ for a = 1:n_algs
         'DisplayName', algorithms{a,1});
 end
 
-% 坐标轴设置
+
 set(gca, 'XTick', x_idx, 'XTickLabel', x_labels);
 xlabel('Degree of Coplanarity', 'FontName', font_name);
 ylabel('Rotation Error (deg)', 'FontName', font_name);
@@ -163,20 +158,20 @@ ylabel('Rotation Error (deg)', 'FontName', font_name);
 
 ylim([0, 5]); 
 
-% 字体与图例
-set(gca, 'FontName', font_name, 'FontSize', font_size);
-legend('Location', 'northwest', 'Interpreter', 'none','FontSize',8); % 单独图例
-% title('Rotation Accuracy'); % 论文正式图通常不需要 title，标题写在 LaTeX caption 里
 
-% 保存
+set(gca, 'FontName', font_name, 'FontSize', font_size);
+legend('Location', 'northwest', 'Interpreter', 'none','FontSize',8); 
+
+
+
 exportgraphics(gcf, 'Fig_Rot_Error.pdf', 'ContentType', 'vector');
 
 
 % =============================================================
-%   Figure 2: Translation Error (Clipped)
+%   Figure 2: Translation Error 
 % =============================================================
 figure(2); clf;
-set(gcf, 'Color', 'w', 'Position', fig_pos + [50, -50, 0, 0]); % 稍微错开一点位置
+set(gcf, 'Color', 'w', 'Position', fig_pos + [50, -50, 0, 0]); 
 hold on; grid on; box on;
 
 for a = 1:n_algs
@@ -189,12 +184,12 @@ set(gca, 'XTick', x_idx, 'XTickLabel', x_labels);
 xlabel('Degree of Coplanarity', 'FontName', font_name);
 ylabel('Translation Error (%)', 'FontName', font_name);
 
-% 【核心】截断 Y 轴
+
 ylim([0, 10]); 
 
 set(gca, 'FontName', font_name, 'FontSize', font_size);
 legend('Location', 'northwest', 'Interpreter', 'none','FontSize',8);
-% title('Translation Accuracy');
+
 
 exportgraphics(gcf, 'Fig_Trans_Error.pdf', 'ContentType', 'vector');
 
@@ -216,13 +211,13 @@ set(gca, 'XTick', x_idx, 'XTickLabel', x_labels);
 xlabel('Degree of Coplanarity', 'FontName', font_name);
 ylabel('Success Rate (%)', 'FontName', font_name);
 
-% 成功率固定范围
+
 ylim([-2, 102]); 
 
 set(gca, 'FontName', font_name, 'FontSize', font_size);
-% 成功率图的图例通常放左下角（因为曲线通常在上方）
+
 legend('Location', 'northwest', 'Interpreter', 'none','FontSize',8);
-% title('Success Rate');
+
 
 exportgraphics(gcf, 'Fig_Success_Rate.pdf', 'ContentType', 'vector');
 
