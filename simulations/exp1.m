@@ -14,7 +14,7 @@ boxplot_noise_targets = [1.0, 3.0, 5.0];
 
 algorithms = {
     'BAPnP',   @pnp_linear_only;
-    'BAPnP-GN',   @BAPnP1;
+    'BAPnP-GN',   @BAPnP_new;
     'EPnP-GN', @run_epnp_guass; 
     'OPnP',       @run_opnp;
     'RPnP',       @run_rpnp;
