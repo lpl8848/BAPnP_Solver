@@ -13,7 +13,7 @@ boxplot_n_targets = [6,10, 20, 100];
 
 algorithms = {
     'BAPnP',   @pnp_linear_only;
-    'BAPnP-GN',   @BAPnP;
+    'BAPnP-GN',   @BAPnP_new;
     'EPnP-GN', @run_epnp_guass; 
     'OPnP',       @run_opnp;
     'RPnP',       @run_rpnp;
