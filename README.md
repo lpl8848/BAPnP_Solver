@@ -1,4 +1,4 @@
-# BAPnP: A Robust Linear Initialization for PnP Based on Barycentric Affine Invariance
+# BAPnP: A Barycentric Affine-Invariant Linear Solver for Robust Perspective-n-Point Initialization
 
 This repository contains the MATLAB simulations and C++ implementation for the paper: **"BAPnP: A Robust Linear Initialization for PnP Based on Barycentric Affine Invariance"**.
 
