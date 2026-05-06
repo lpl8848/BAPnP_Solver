@@ -16,7 +16,9 @@ algorithms = {
     'SRPnP-GN',        @run_srpnp;
     'MLPnP',      @run_mlpnp;
     'CPnP-GN',      @run_cpnp;
+    'SQPnP',      @sqpnp;
     'EPnP-GN-Greedy',      @run_epnp_with_cpts;
+    'BAPnP',      @pnp_linear_only;
     'SQPnP',      @sqpnp;
 };
 n_algs = size(algorithms,1);
