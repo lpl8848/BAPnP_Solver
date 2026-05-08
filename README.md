@@ -1,8 +1,30 @@
-# BAPnP: A Barycentric Affine-Invariant Linear Solver for Robust Perspective-n-Point Initialization
+# BAPnP: A Barycentric Affine Invariant Linear Solver for Robust and Efficient Perspective-n-Point Pose Estimation
 
-This repository contains the MATLAB simulations and C++ implementation for the paper: **"BAPnP: A Robust Linear Initialization for PnP Based on Barycentric Affine Invariance"**.
+[![Manuscript Status](https://img.shields.io/badge/Manuscript-Under%20Review-blue)](https://github.com/lpl8848/BAPnP_Solver)
 
-BAPnP is an efficient $O(n)$ solver that leverages geometry-guided base selection to maximize the reference basis volume, providing a reliable initialization for Gauss-Newton refinement, especially in quasi-planar configurations.
+This repository contains the MATLAB simulations and C++ implementation for the paper:
+
+> **"BAPnP: A Barycentric Affine Invariant Linear Solver for Robust and Efficient Perspective-$n$-Point Pose Estimation"**  
+> *Under review at **The Visual Computer** (Springer).*
+
+BAPnP is an efficient $O(n)$ solver that leverages geometry-guided base selection to maximize the reference basis volume, providing a reliable initialization for Gauss-Newton refinement, especially in quasi-planar configurations. It maintains 100% success rate down to strict coplanarity while executing in just $4.4\,\mu s$ at $N=10$ in C++.
+
+---
+
+## Citation
+
+If you use this code in your research, please cite the corresponding manuscript:
+
+```bibtex
+@article{luo2025bapnp,
+  title={BAPnP: A Barycentric Affine Invariant Linear Solver for Robust and Efficient Perspective-n-Point Pose Estimation},
+  author={Luo, Peilin and Guo, Yang},
+  journal={Under review at The Visual Computer},
+  year={2025}
+}
+```
+
+---
 
 ## 1. MATLAB Simulations
 
@@ -76,15 +98,21 @@ Ensure you have a C++ compiler (supports C++11 or higher) and CMake installed.
 ```bash
 mkdir build
 cd build
-# Assuming CMake is used to generate the Makefile
 cmake .. 
 make -j
+```
 
-Runtime Benchmark:
+**Runtime Benchmark:**
+```bash
 ./run_benchmark
+```
 
-TUM RGB-D Experiment:
+**TUM RGB-D Experiment:**
+```bash
 ./run_tum
+```
 
-South Building (COLMAP) Experiment:
+**South Building (COLMAP) Experiment:**
+```bash
 ./run_colmap_bench
+```
