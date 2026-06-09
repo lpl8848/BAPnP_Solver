@@ -6,11 +6,13 @@
 #include <map>
 #include <set>
 #include <chrono>
-#include <cmath>
 #include <iomanip>
-#include <algorithm> 
-#include <random>   
-#include <numeric>  
+#include <algorithm>
+#include <random>
+#include <numeric>
+
+#define _USE_MATH_DEFINES
+#include <cmath>
 
 #include <Eigen/Dense>
 
@@ -335,7 +337,7 @@ void run_benchmark_on_sparse(const vector<Image>& images, map<int, Point3D>& poi
 }
 
 int main(int argc, char** argv) {
-    string dataset_path = "/home/luo/projects/MyBAPnP/south-building";
+    string dataset_path = "D:/Data/south-building";
     if (argc > 1) dataset_path = argv[1];
 
     map<int, Point3D> points3d;

@@ -1,13 +1,16 @@
 #include "bapnp.h"
 #include <iostream>
 #include <vector>
-#include <cmath>
 #include <limits>
+
+#define _USE_MATH_DEFINES
+#include <cmath>
+
 #include <Eigen/Core>
 #include <Eigen/SVD>
 #include <Eigen/Dense>
 #include <Eigen/Geometry>
-#include <Eigen/Cholesky> 
+#include <Eigen/Cholesky>
 
 using namespace Eigen;
 using namespace std;
@@ -88,8 +91,7 @@ void BAPnP::linear_solver(const MatrixXd& y_norm, const MatrixXd& P_world, Matri
 
     vector<int> perm;
     perm.reserve(N);
-    bool is_base[N]; 
-    std::fill(is_base, is_base + N, false);
+    vector<bool> is_base(N, false);
     
     for(int i=0; i<4; ++i) {
         perm.push_back(base_idx[i]);

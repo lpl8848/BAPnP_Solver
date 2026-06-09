@@ -4,9 +4,11 @@
 #include <string>
 #include <sstream>
 #include <chrono>
-#include <cmath>
 #include <iomanip>
-#include <algorithm> 
+#include <algorithm>
+
+#define _USE_MATH_DEFINES
+#include <cmath>
 
 #include <Eigen/Dense>
 
@@ -59,10 +61,12 @@ double measure_median_time(Func func) {
     }
 }
 
-int main() {
-    ifstream inFile("tum_data_export.txt");
+int main(int argc, char** argv) {
+    string data_file = "D:/Data/tum_data_export.txt";
+    if (argc > 1) data_file = argv[1];
+    ifstream inFile(data_file);
     if (!inFile.is_open()) {
-        cerr << "Error: Cannot open tum_data_export.txt." << endl;
+        cerr << "Error: Cannot open " << data_file << endl;
         return -1;
     }
 

@@ -19,7 +19,6 @@
 #include <opencv2/core.hpp>
 
 #endif
-
 #include <iostream>
 #include <Eigen/Dense>
  
