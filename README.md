@@ -11,6 +11,20 @@ BAPnP is an efficient $O(n)$ solver that leverages geometry-guided base selectio
 
 ---
 
+## 3. Supplementary Materials
+
+`supplementary.pdf` in the repository root archives three reviewer-requested experiments that are not included in the main manuscript:
+
+| Section | Content | Description |
+| :--- | :--- | :--- |
+| §2 | Localized Basis-Point Corruption | Pure-linear oDLT comparison under targeted basis-point noise (0--20 px) |
+| §3 | Minimal-Configuration Analysis | Performance of all 9 PnP methods at $N=4,5,6$ ($\sigma=3$ px) |
+| §4 | Extremal Outlier Injection | RANSAC-integrated comparison under 10%--50% synthetic periphery outliers |
+
+The C++ sources for the supplementary experiments (`main_tum_ransac.cpp`, `main_tum_high_ransac.cpp`) and the plotting script (`plot_outlier.py`) are included in this repository.
+
+---
+
 ## Citation
 
 If you use this code in your research, please cite the corresponding manuscript:
@@ -72,9 +86,11 @@ The C++ source code is located in the `src/` directory. It is designed for real-
 ### 2.1 Source Files
 
 * `src/bapnp.cpp`: The C++ implementation of the BAPnP algorithm.
-* `main_benchmark.cpp`: Runtime comparison against OpenCV implementations.
+* `main_benchmark.cpp`: Runtime comparison against state-of-the-art implementations.
 * `main_colmap_benchmark.cpp`: Evaluation on the **South Building Dataset**.
-* `main_tum.cpp`: Evaluation on the **TUM RGB-D Dataset**.
+* `main_tum.cpp`: Raw evaluation on the **TUM RGB-D Dataset** (without outlier rejection).
+* `main_tum_ransac.cpp`: RANSAC-integrated evaluation on the **TUM RGB-D Dataset** (500 iterations, 6-pt sampling, 2 px threshold).
+* `main_tum_high_ransac.cpp`: RANSAC evaluation with synthetic extremal outlier injection (10%--50% ratios), testing robustness under adversarial periphery outliers.
 
 ### 2.2 Dataset Preparation
 
@@ -110,6 +126,17 @@ make -j
 **TUM RGB-D Experiment:**
 ```bash
 ./run_tum
+```
+
+**TUM RANSAC Experiment:**
+```bash
+./run_tum_ransac
+```
+
+**TUM RANSAC with Extremal Outlier Injection:**
+```bash
+./run_tum_high_ransac [outlier_ratio]
+# e.g., ./run_tum_high_ransac 0.3  for 30% injected outliers
 ```
 
 **South Building (COLMAP) Experiment:**
