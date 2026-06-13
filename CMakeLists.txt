@@ -48,14 +48,25 @@ add_executable(run_tum_ransac
     src/sqpnp.cpp
 )
 
+# 5. TUM 数据集高外点 RANSAC 评估目标 (针对 extremal outlier 场景)
+add_executable(run_tum_high_ransac
+    main_tum_high_ransac.cpp
+    src/bapnp.cpp
+    src/cpnp.cpp
+    src/epnp.cpp
+    src/sqpnp.cpp
+)
+
 # 设置包含目录
 target_include_directories(run_benchmark PRIVATE include)
 target_include_directories(run_tum PRIVATE include)
 target_include_directories(run_colmap_bench PRIVATE include)
 target_include_directories(run_tum_ransac PRIVATE include)
+target_include_directories(run_tum_high_ransac PRIVATE include)
 
 # 链接库 (Eigen3 和 OpenCV)
 target_link_libraries(run_benchmark PRIVATE Eigen3::Eigen ${OpenCV_LIBS})
 target_link_libraries(run_tum PRIVATE Eigen3::Eigen ${OpenCV_LIBS})
 target_link_libraries(run_colmap_bench PRIVATE Eigen3::Eigen ${OpenCV_LIBS})
 target_link_libraries(run_tum_ransac PRIVATE Eigen3::Eigen ${OpenCV_LIBS})
+target_link_libraries(run_tum_high_ransac PRIVATE Eigen3::Eigen ${OpenCV_LIBS})
