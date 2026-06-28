@@ -30,11 +30,11 @@ The C++ sources for the supplementary experiments (`main_tum_ransac.cpp`, `main_
 If you use this code in your research, please cite the corresponding manuscript:
 
 ```bibtex
-@article{luo2025bapnp,
+@article{luo2026bapnp,
   title={BAPnP: A Barycentric Affine Invariant Linear Solver for Robust and Efficient Perspective-n-Point Pose Estimation},
   author={Luo, Peilin and Guo, Yang},
   journal={Under review at The Visual Computer},
-  year={2025}
+  year={2026}
 }
 ```
 
