@@ -1,6 +1,6 @@
 # BAPnP: A Barycentric Affine Invariant Linear Solver for Robust and Efficient Perspective-n-Point Pose Estimation
 
-[![Manuscript Status](https://img.shields.io/badge/Manuscript-Under%20Review-blue)](https://github.com/lpl8848/BAPnP_Solver)
+[![Manuscript Status](https://img.shields.io/badge/Manuscript-Accept%20Review-blue)](https://github.com/lpl8848/BAPnP_Solver)
 
 This repository contains the MATLAB simulations and C++ implementation for the paper:
 
@@ -31,10 +31,14 @@ If you use this code in your research, please cite the corresponding manuscript:
 
 ```bibtex
 @article{luo2026bapnp,
-  title={BAPnP: A Barycentric Affine Invariant Linear Solver for Robust and Efficient Perspective-n-Point Pose Estimation},
+  title={Bapnp: a barycentric affine invariant linear solver for robust and efficient perspective-n-point pose estimation},
   author={Luo, Peilin and Guo, Yang},
-  journal={Under review at The Visual Computer},
-  year={2026}
+  journal={The Visual Computer},
+  volume={42},
+  number={10},
+  pages={450},
+  year={2026},
+  publisher={Springer}
 }
 ```
 
