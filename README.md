@@ -5,7 +5,7 @@
 This repository contains the MATLAB simulations and C++ implementation for the paper:
 
 > **"BAPnP: A Barycentric Affine Invariant Linear Solver for Robust and Efficient Perspective-$n$-Point Pose Estimation"**  
-> *Under review at **The Visual Computer** (Springer).*
+
 
 BAPnP is an efficient $O(n)$ solver that leverages geometry-guided base selection to maximize the reference basis volume, providing a reliable initialization for Gauss-Newton refinement, especially in quasi-planar configurations. It maintains 100% success rate down to strict coplanarity while executing in just $4.4\,\mu s$ at $N=10$ in C++.
 
