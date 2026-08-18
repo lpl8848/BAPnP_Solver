@@ -1,6 +1,6 @@
 # BAPnP: A Barycentric Affine Invariant Linear Solver for Robust and Efficient Perspective-n-Point Pose Estimation
 
-[![Manuscript Status](https://img.shields.io/badge/Manuscript-Accept%20Review-blue)](https://github.com/lpl8848/BAPnP_Solver)
+[![Manuscript Status](https://img.shields.io/badge/Manuscript-Accept%20-blue)](https://github.com/lpl8848/BAPnP_Solver)
 
 This repository contains the MATLAB simulations and C++ implementation for the paper:
 
